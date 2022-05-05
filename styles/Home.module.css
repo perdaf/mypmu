@@ -108,9 +108,23 @@
   margin-left: 0.5rem;
 }
 
+/* mes css */
+
 .inputdate{
  color: grey;
  font-size: 1.3em;
+}
+
+.btn {
+  border: 1.5px solid black;
+  border-radius: 0.4em;
+  padding: 0.5rem 1rem;
+}
+.btn__info {
+  color: green;
+}
+.btn__danger {
+  color: red;
 }
 
 @media (max-width: 600px) {

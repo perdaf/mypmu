@@ -27,7 +27,9 @@ export default function Home() {
           />
         </form>
         <p>la valeur de la date est :{date ? date : "pas de date defini"}</p>
-        <a href="/coursesdujour">course du jour</a>
+        <a href={`/infoscourse/${date}`} className={styles.btn__info}>
+          course du jour
+        </a>
       </main>
 
       {/* <footer className={styles.footer}>
