@@ -1,59 +1,41 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
-
 # app d'analyse des cheveaux pour le pmu
 
 ### API
 
-infos sur les participants:
+details courses:
+- URL de requête: https://online.turfinfo.api.pmu.fr/rest/client/62/programme/03052022?meteo=true&specialisation=OFFLINE
 
-https://online.turfinfo.api.pmu.fr/rest/client/62/programme/30032022/R1/C1/participants?specialisation=OFFLINE
+
+infos sur les participants:
+- https://online.turfinfo.api.pmu.fr/rest/client/62/programme/30032022/R1/C1/participants?specialisation=OFFLINE
 
 pronostics:
-
-https://online.turfinfo.api.pmu.fr/rest/client/62/programme/16042022/R1/C3/pronostics?commentaire=true
+- https://online.turfinfo.api.pmu.fr/rest/client/62/programme/16042022/R1/C3/pronostics?commentaire=true
 
 pronostics détaillés:
-
-https://online.turfinfo.api.pmu.fr/rest/client/62/programme/16042022/R1/C3/pronostics-detailles
+- https://online.turfinfo.api.pmu.fr/rest/client/62/programme/16042022/R1/C3/pronostics-detailles
 
 ???:
-https://online.turfinfo.api.pmu.fr/rest/client/62/programme/16042022/R1?specialisation=OFFLINE
+- https://online.turfinfo.api.pmu.fr/rest/client/62/programme/16042022/R1?specialisation=OFFLINE
 
 structure de l'API
 
 root: 
-https://online.turfinfo.api.pmu.fr/rest/client/62/programme/
+- https://online.turfinfo.api.pmu.fr/rest/client/62/programme/
+
+---
+
+**TODO :**
+- [X] créer un 'date picker' sur la page d'acceuil pour séléctionner la date de la course.
+- [ ] récupérer le numéro de réunion (R1,2,...) et de course (C1,2,...) pour le pari **quinté+** en selectionnant la date de la course dans un **date picker**.
+- [ ] récupérer la liste des cheveaux de la courses (mise en base de donnée ? sqlite ?).
+- [ ] calculer la musique de chaque cheval.
+- [ ] récupérer les pronostiques.
+- [ ] calculer les statistique de chaque cheval.
+- [ ] affiché les information sous forme de graph. 
+
+---
+nota:
+- prendre les cheveaux un a un et "etudier" son poid dans les pronostics.
+
+- Ne pas oublier d'intégrer dans le choix finale des outsider avec un 'system' random.
