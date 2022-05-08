@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
 import moment from "moment";
@@ -27,9 +28,9 @@ export default function Home() {
           />
         </form>
         <p>la valeur de la date est :{date ? date : "pas de date defini"}</p>
-        <a href={`/infoscourse/${date}`} className={styles.btn__info}>
-          course du jour
-        </a>
+        <Link href={`/infosreuniondate/${date}`} className={styles.btn__info}>
+          <a>course du jour</a>
+        </Link>
       </main>
 
       {/* <footer className={styles.footer}>
