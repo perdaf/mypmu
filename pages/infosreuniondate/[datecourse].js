@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "../../styles/Home.module.css";
 
 export default function coursesdujour({ date, res }) {
@@ -12,6 +13,12 @@ export default function coursesdujour({ date, res }) {
           {res.parisEvenement.map((pe) => {
             return (
               <div>
+                <Link
+                  href={`/infoscourse/${date}/R${pe.course.numReunion}C${pe.course.numOrdre}`}
+                  className={styles.btn__info}
+                >
+                  <a>infocourse</a>
+                </Link>
                 <p>
                   -- <b>{pe.codePari}</b>
                 </p>

@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Head from "next/head";
-import Image from "next/image";
 import moment from "moment";
 import styles from "../styles/Home.module.css";
 
