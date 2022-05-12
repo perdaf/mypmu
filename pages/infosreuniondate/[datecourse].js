@@ -1,21 +1,42 @@
 import styles from "../../styles/Home.module.css";
 
 export default function coursesdujour({ date, res }) {
-  let infoscourses = res.programme.reunions;
-  let infos = infoscourses.map((res) => {
-    return (
-      <div>
-        <p key={res.numofficiel}>parievenement: {res}</p>
-      </div>
-    );
+  let infos_reunions = res.programme.reunions;
+
+  let infos = infos_reunions.map((res, index) => {
+    let si_paris = Object.keys(res.parisEvenement).length;
+    if (si_paris > 0) {
+      return (
+        <div className={styles.badge} key={index}>
+          <h2>Reunion:{res.numOfficiel}</h2>
+          {res.parisEvenement.map((pe) => {
+            return (
+              <div>
+                <p>
+                  -- <b>{pe.codePari}</b>
+                </p>
+                <p>
+                  ---- R{pe.course.numReunion} C{pe.course.numOrdre}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      );
+    } else {
+      return (
+        <div className={styles.badge} key={index}>
+          <h2>Reunion:{res.numOfficiel}</h2>
+          <h4>pas de code paris</h4>
+        </div>
+      );
+    }
   });
+
   return (
     <div className={styles.container}>
-      <h1>test</h1>
-      <div>affichage des infos</div>
-      <p>la date choisi es: {date}</p>
-      <p>infos sur les reunions</p>
-      {infos}
+      <h1>Reunions du {date}</h1>
+      <div className={styles.badgecontainer}>{infos}</div>
     </div>
   );
 }

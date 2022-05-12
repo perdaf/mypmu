@@ -127,6 +127,23 @@
   color: red;
 }
 
+.badgecontainer {
+  /* max-width: 860px; */
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.badge {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border: 1px solid black;
+  border-radius: 1rem;
+  flex: 0 0 auto;
+  width: calc(33.33% - 30px);
+  margin: 0 0 15px 15px;
+}
+
 @media (max-width: 600px) {
   .grid {
     width: 100%;

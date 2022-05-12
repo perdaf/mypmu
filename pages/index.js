@@ -18,7 +18,6 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>PMU ANALYTIQUE</h1>
-
         <p className={styles.description}>select the race day :</p>
         <form>
           <input
@@ -27,10 +26,17 @@ export default function Home() {
             className={styles.inputdate}
           />
         </form>
-        <p>la valeur de la date est :{date ? date : "pas de date defini"}</p>
-        <Link href={`/infosreuniondate/${date}`} className={styles.btn__info}>
-          <a>course du jour</a>
-        </Link>
+        {date && (
+          <>
+            <p>la valeur de la date est :{date}</p>
+            <Link
+              href={`/infosreuniondate/${date}`}
+              className={styles.btn__info}
+            >
+              <a>Reunions du jour séléctionné :</a>
+            </Link>
+          </>
+        )}
       </main>
 
       {/* <footer className={styles.footer}>

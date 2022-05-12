@@ -27,7 +27,8 @@ root:
 
 **TODO :**
 - [X] créer un 'date picker' sur la page d'acceuil pour séléctionner la date de la course.
-- [ ] récupérer le numéro de réunion (R1,2,...) et de course (C1,2,...) pour le pari **quinté+** en selectionnant la date de la course dans un **date picker**.
+- [X] récupérer le numéro de réunion (R1,2,...) et de course (C1,2,...) pour le pari **quinté+** en selectionnant la date de la course dans un **date picker**.
+    - [ ] (10/05/22) mettre en forme la liste des reunion et les paris/courses associé.
 - [ ] récupérer la liste des cheveaux de la courses (mise en base de donnée ? sqlite ?).
 - [ ] calculer la musique de chaque cheval.
 - [ ] récupérer les pronostiques.
