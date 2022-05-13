@@ -11,10 +11,12 @@ export default function coursesdujour({ date, res }) {
         <div className={styles.badge} key={index}>
           <h2>Reunion:{res.numOfficiel}</h2>
           {res.parisEvenement.map((pe) => {
+            let rc = `R${pe.course.numReunion}/C${pe.course.numOrdre}`;
+            console.log(rc);
             return (
               <div>
                 <Link
-                  href={`/infoscourse/${date}/R${pe.course.numReunion}C${pe.course.numOrdre}`}
+                  href={`/infoscourse/${date}/${pe.course.numReunion}/${pe.course.numOrdre}`}
                   className={styles.btn__info}
                 >
                   <a>infocourse</a>
