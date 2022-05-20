@@ -28,11 +28,8 @@ export default function Home() {
         {date && (
           <>
             <p>la valeur de la date est :{date}</p>
-            <Link
-              href={`/infosreuniondate/${date}`}
-              className={styles.btn__info}
-            >
-              <a>Reunions du jour séléctionné :</a>
+            <Link href={`/infosreuniondate/${date}`}>
+              <a className={styles.btn}>Reunions du jour séléctionné :</a>
             </Link>
           </>
         )}
