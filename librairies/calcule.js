@@ -1,5 +1,5 @@
 export const poidMusique = (mus) => {
-  console.log("appel de poid musique", mus);
+  console.log(mus);
   return (
     <>
       <div>
