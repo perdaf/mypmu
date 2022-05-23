@@ -2,10 +2,15 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../../styles/Home.module.css";
 
+import { poidMusique } from "../librairies/calcule";
+import { afficheInfosParticipant } from "../components/afficheinfosparticipant";
+
 export default function coursesdujour(res) {
   console.log(res.infoparticipant.participants);
   console.log(res.infopronostique);
   console.log(res.infocourse);
+
+  const participants = res.infoparticipant.participants;
 
   return (
     <div className={styles.container}>
@@ -30,6 +35,8 @@ export default function coursesdujour(res) {
         </div>
         <div>
           <h1 className={styles.title}>Infos sur les participants</h1>
+          {poidMusique("test")}
+          {afficheInfosParticipant(participants)}
         </div>
       </main>
     </div>
