@@ -7,6 +7,10 @@
 
 # testing
 /coverage
+*.tsbuildinfo
+/data/*.sqlite
+/data/*.sqlite-shm
+/data/*.sqlite-wal
 
 # next.js
 /.next/

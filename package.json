@@ -1,23 +1,35 @@
 {
   "name": "mypmu",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:init": "tsx scripts/init-db.ts",
+    "collect": "tsx scripts/collect-pmu.ts",
+    "collect:today": "tsx scripts/collect-today.ts",
+    "collect:watch": "tsx scripts/watch-collector.ts"
   },
   "dependencies": {
-    "g": "^2.0.1",
-    "moment": "^2.29.3",
-    "next": "12.1.5",
-    "react": "18.0.0",
-    "react-dom": "18.0.0",
-    "yarn": "^1.22.18"
+    "better-sqlite3": "13.0.3",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.2"
   },
   "devDependencies": {
-    "eslint": "8.13.0",
-    "eslint-config-next": "12.1.5"
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
   }
 }

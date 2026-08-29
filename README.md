@@ -1,4 +1,71 @@
-# app d'analyse des cheveaux pour le pmu
+# MyPMU Analytique
+
+Application moderne d’aide à la lecture et à l’analyse des courses hippiques à partir des données PMU.
+
+## Démarrage
+
+```bash
+npm install
+npm run dev
+```
+
+Puis ouvrir `http://localhost:3000`.
+
+## Vérifications
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
+
+## Architecture
+
+- `app/` : routes et interface Next.js App Router ;
+- `components/` : composants interactifs ;
+- `lib/pmu.ts` : accès centralisé et validation des réponses PMU avec Zod ;
+- `lib/date.ts` : conversion et validation des dates.
+- `lib/bets.ts` : calcul des combinaisons, de la couverture et des coûts Flexi ;
+- `components/bet-simulator.tsx` : simulateur des formules réellement ouvertes sur une course.
+
+Le simulateur exploite `miseBase`, `valeursFlexiAutorisees` et `valeursRisqueAutorisees` fournis par PMU. Il ne présente pas encore ses calculs comme des recommandations : il faudra d’abord collecter les cotes avant départ, les arrivées et les rapports définitifs, puis mesurer les stratégies sur un historique strictement antérieur à chaque course.
+
+## Recommandation expérimentale
+
+La fiche course génère automatiquement un classement explicable à partir de la cote, de la musique récente, du bilan de carrière, du consensus des pronostiqueurs et de l’avis de l’entraîneur. Elle préremplit trois jeux complémentaires : sécurité, couverture et objectif Quinté+. Un outsider n’est retenu que lorsque ses indicateurs sportifs et son soutien dépassent ce que suggère sa cote ; il n’est jamais ajouté au hasard.
+
+Ce classement est une première heuristique transparente. Il devra être remplacé ou recalibré après collecte historique et backtest chronologique avant d’afficher des probabilités de gain.
+
+## Base historique
+
+Le stockage local SQLite est initialisé puis alimenté avec :
+
+```bash
+npm run db:init
+npm run collect -- JJMMAAAA
+# Une seule course :
+npm run collect -- JJMMAAAA REUNION COURSE
+```
+
+Automatisation du jour PMU (fuseau Europe/Paris) :
+
+```bash
+# Collecte complète quotidienne
+npm run collect:today
+
+# Surveillance toutes les 5 minutes des courses à ±45 minutes du départ
+npm run collect:watch
+```
+
+L’intervalle peut être réglé avec `MYPMU_COLLECTION_INTERVAL_MS`, sans descendre sous une minute. Une exécution complète quotidienne prépare le programme ; la surveillance conserve ensuite les mouvements de cote proches du départ et récupère les résultats/rapports lorsqu’ils deviennent disponibles.
+
+La base `data/mypmu.sqlite` est locale et ignorée par Git. Son schéma se trouve dans `data/schema.sql`. La collecte est relançable : courses, chevaux et partants sont mis à jour sans doublon, tandis que chaque nouvelle cote est conservée comme un instantané daté.
+
+Les champs absents sont enregistrés dans `race_entries.missing_fields` avec un indice `data_completeness`. Dans l’analyse, une donnée manquante reçoit une valeur neutre, jamais zéro : le cheval reste étudié, mais la confiance et, légèrement, le score sont réduits. Si plus de 40 % des partants ont une confiance faible, ou si la complétude moyenne descend sous 55 %, le moteur s’abstient déjà de proposer un ticket.
+
+Le projet ne fournit pas de garantie de gain. Les futures probabilités devront être calculées à partir de données historiques et évaluées par backtest chronologique.
+
+## Historique du prototype
 
 ### API
 
