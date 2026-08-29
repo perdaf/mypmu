@@ -59,7 +59,24 @@ npm run collect:watch
 
 L’intervalle peut être réglé avec `MYPMU_COLLECTION_INTERVAL_MS`, sans descendre sous une minute. Une exécution complète quotidienne prépare le programme ; la surveillance conserve ensuite les mouvements de cote proches du départ et récupère les résultats/rapports lorsqu’ils deviennent disponibles.
 
-La base `data/mypmu.sqlite` est locale et ignorée par Git. Son schéma se trouve dans `data/schema.sql`. La collecte est relançable : courses, chevaux et partants sont mis à jour sans doublon, tandis que chaque nouvelle cote est conservée comme un instantané daté.
+La base `data/mypmu.sqlite` est versionnée afin de partager le même historique entre les postes de développement. Son schéma se trouve dans `data/schema.sql`. La collecte est relançable : courses, chevaux et partants sont mis à jour sans doublon, tandis que chaque nouvelle cote est conservée comme un instantané daté.
+
+### Synchroniser la base entre deux postes
+
+SQLite est un fichier binaire que Git ne peut pas fusionner. Il ne faut donc pas collecter sur les deux postes en parallèle :
+
+```bash
+# Avant de commencer à travailler ou à collecter
+git pull --rebase origin main
+
+# Après la collecte, une fois le collecteur arrêté
+sqlite3 data/mypmu.sqlite 'PRAGMA wal_checkpoint(TRUNCATE);'
+git add data/mypmu.sqlite
+git commit -m "data: update PMU history"
+git push origin main
+```
+
+Les fichiers temporaires `data/*.sqlite-wal` et `data/*.sqlite-shm` restent ignorés. Pour une collecte continue ou une base devenue volumineuse, il faudra migrer cet historique vers un stockage partagé plutôt que conserver SQLite dans Git.
 
 Les champs absents sont enregistrés dans `race_entries.missing_fields` avec un indice `data_completeness`. Dans l’analyse, une donnée manquante reçoit une valeur neutre, jamais zéro : le cheval reste étudié, mais la confiance et, légèrement, le score sont réduits. Si plus de 40 % des partants ont une confiance faible, ou si la complétude moyenne descend sous 55 %, le moteur s’abstient déjà de proposer un ticket.
 
