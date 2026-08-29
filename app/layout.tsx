@@ -13,7 +13,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <header className="siteHeader">
           <Link href="/" className="brand">MyPMU <span>Analytique</span></Link>
-          <p>Aide à la décision fondée sur les données</p>
+          <nav aria-label="Navigation principale">
+            <Link href="/">Courses</Link>
+            <Link href="/historique">Historique & IA</Link>
+          </nav>
         </header>
         {children}
         <footer className="siteFooter">
