@@ -174,9 +174,37 @@ CREATE TABLE IF NOT EXISTS race_entry_performance_snapshots (
   FOREIGN KEY (target_race_id, pmu_number) REFERENCES race_entries(race_id, pmu_number) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS venues (
+  name TEXT PRIMARY KEY,
+  resolved_name TEXT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
+  timezone TEXT NOT NULL,
+  country TEXT,
+  source TEXT NOT NULL,
+  resolved_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS race_weather (
+  race_id TEXT PRIMARY KEY REFERENCES races(id) ON DELETE CASCADE,
+  venue_name TEXT NOT NULL REFERENCES venues(name),
+  observed_for INTEGER NOT NULL,
+  temperature_c REAL,
+  relative_humidity_percent REAL,
+  precipitation_mm REAL,
+  weather_code INTEGER,
+  wind_speed_kmh REAL,
+  wind_gusts_kmh REAL,
+  soil_moisture REAL,
+  source TEXT NOT NULL,
+  raw_json TEXT NOT NULL,
+  collected_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_races_date ON races(programme_date);
 CREATE INDEX IF NOT EXISTS idx_entries_horse ON race_entries(horse_id);
 CREATE INDEX IF NOT EXISTS idx_odds_race_time ON odds_snapshots(race_id, observed_at);
 CREATE INDEX IF NOT EXISTS idx_results_race ON race_results(race_id);
 CREATE INDEX IF NOT EXISTS idx_performances_horse_date ON horse_performances(horse_id, raced_at DESC);
 CREATE INDEX IF NOT EXISTS idx_performance_snapshots_target ON race_entry_performance_snapshots(target_race_id, pmu_number, recency_rank);
+CREATE INDEX IF NOT EXISTS idx_weather_observed_for ON race_weather(observed_for);

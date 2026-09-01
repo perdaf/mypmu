@@ -12,7 +12,8 @@
     "db:init": "tsx scripts/init-db.ts",
     "collect": "tsx scripts/collect-pmu.ts",
     "collect:today": "tsx scripts/collect-today.ts",
-    "collect:watch": "tsx scripts/watch-collector.ts"
+    "collect:watch": "tsx scripts/watch-collector.ts",
+    "collect:weather": "tsx scripts/collect-weather.ts"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

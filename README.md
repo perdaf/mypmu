@@ -55,6 +55,9 @@ npm run collect:today
 
 # Surveillance toutes les 5 minutes des courses à ±45 minutes du départ
 npm run collect:watch
+
+# Compléter la météo des courses déjà présentes, même si PMU est indisponible
+npm run collect:weather -- JJMMAAAA
 ```
 
 L’intervalle peut être réglé avec `MYPMU_COLLECTION_INTERVAL_MS`, sans descendre sous une minute. Une exécution complète quotidienne prépare le programme ; la surveillance conserve ensuite les mouvements de cote proches du départ et récupère les résultats/rapports lorsqu’ils deviennent disponibles.
@@ -81,6 +84,8 @@ Les fichiers temporaires `data/*.sqlite-wal` et `data/*.sqlite-shm` restent igno
 Les champs absents sont enregistrés dans `race_entries.missing_fields` avec un indice `data_completeness`. Dans l’analyse, une donnée manquante reçoit une valeur neutre, jamais zéro : le cheval reste étudié, mais la confiance et, légèrement, le score sont réduits. Si plus de 40 % des partants ont une confiance faible, ou si la complétude moyenne descend sous 55 %, le moteur s’abstient déjà de proposer un ticket.
 
 Le collecteur récupère aussi jusqu’à dix performances détaillées antérieures pour chaque partant. Les événements sont normalisés dans `horse_performances` et reliés à la course cible par `race_entry_performance_snapshots`. Seules les performances dont la date précède strictement le départ sont conservées dans cet instantané, afin d’empêcher toute fuite de données futures pendant l’entraînement et les backtests.
+
+La météo horaire est fournie par Open-Meteo après géocodage précis et mis en cache via OpenStreetMap Nominatim, puis stockée dans `race_weather` avec sa source. Elle décrit les conditions atmosphériques proches du départ, mais ne remplace jamais l’état officiel du terrain ou de la piste. L’accès PMU essaie successivement les passerelles `online` et `offline`; la liste peut être remplacée avec `MYPMU_PMU_API_ROOTS` (URLs séparées par des virgules).
 
 Le projet ne fournit pas de garantie de gain. Les futures probabilités devront être calculées à partir de données historiques et évaluées par backtest chronologique.
 

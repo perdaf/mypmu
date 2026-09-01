@@ -60,7 +60,9 @@ button, .primaryButton { background: var(--gold); border: 0; color: #1d241f; cur
 .progressTrack { background: #46514b; height: 7px; margin-top: 20px; overflow: hidden; }
 .progressTrack span { background: var(--gold); display: block; height: 100%; min-width: 2px; }
 .readinessCard.ready .progressTrack span { background: #74c995; }
-.historyMetrics { border: 1px solid var(--line); display: grid; grid-template-columns: repeat(6, 1fr); }
+.historyMetrics { border: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); }
+.historyMetrics article:nth-child(4n) { border-right: 0; }
+.historyMetrics article:nth-child(-n+4) { border-bottom: 1px solid var(--line); }
 .historyMetrics article { background: var(--card); border-right: 1px solid var(--line); display: grid; gap: 7px; padding: 22px 18px; }
 .historyMetrics article:last-child { border-right: 0; }
 .historyMetrics small { color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }

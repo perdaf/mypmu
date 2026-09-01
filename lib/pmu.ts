@@ -1,7 +1,16 @@
 import { z } from "zod";
 import { assertPmuDate } from "./date";
 
-const API_ROOT = "https://online.turfinfo.api.pmu.fr/rest/client/62/programme";
+const DEFAULT_API_ROOTS = [
+  "https://online.turfinfo.api.pmu.fr/rest/client/62/programme",
+  "https://offline.turfinfo.api.pmu.fr/rest/client/7/programme",
+  "https://online.turfinfo.api.pmu.fr/rest/client/61/programme",
+];
+
+function apiRoots() {
+  const configured = process.env.MYPMU_PMU_API_ROOTS?.split(",").map((value) => value.trim()).filter(Boolean);
+  return configured?.length ? configured : DEFAULT_API_ROOTS;
+}
 
 const betSchema = z.object({
   codePari: z.string(),
@@ -164,7 +173,7 @@ export class PmuApiError extends Error {
 }
 
 async function fetchWithRetry(url: string) {
-  const delays = [0, 500, 1_500];
+  const delays = [0, 600];
   let lastError: unknown;
   for (const delay of delays) {
     if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
@@ -172,7 +181,7 @@ async function fetchWithRetry(url: string) {
       return await fetch(url, {
         headers: { Accept: "application/json" },
         next: { revalidate: 300 },
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(8_000),
       });
     } catch (error) {
       lastError = error;
@@ -182,18 +191,23 @@ async function fetchWithRetry(url: string) {
 }
 
 async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
-  const response = await fetchWithRetry(`${API_ROOT}/${path}`);
-
-  if (!response.ok) {
-    throw new PmuApiError(`L’API PMU a répondu ${response.status}.`, response.status);
+  let lastError: unknown;
+  for (const root of apiRoots()) {
+    try {
+      const response = await fetchWithRetry(`${root}/${path}`);
+      if (!response.ok) {
+        lastError = new PmuApiError(`L’API PMU a répondu ${response.status}.`, response.status);
+        continue;
+      }
+      const parsed = schema.safeParse(await response.json());
+      if (parsed.success) return parsed.data;
+      console.error("Réponse PMU invalide", parsed.error.flatten());
+      lastError = new PmuApiError("Le format des données PMU a changé.");
+    } catch (error) {
+      lastError = error;
+    }
   }
-
-  const parsed = schema.safeParse(await response.json());
-  if (!parsed.success) {
-    console.error("Réponse PMU invalide", parsed.error.flatten());
-    throw new PmuApiError("Le format des données PMU a changé.");
-  }
-  return parsed.data;
+  throw lastError ?? new PmuApiError("Toutes les passerelles PMU sont indisponibles.");
 }
 
 export async function getProgramme(date: string): Promise<Programme> {

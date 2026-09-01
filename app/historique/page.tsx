@@ -36,6 +36,8 @@ export default function HistoryPage() {
         <article><small>Relevés de cotes</small><strong>{history.oddsSnapshots}</strong><span>instantanés conservés</span></article>
         <article><small>Complétude</small><strong>{history.averageCompletenessPercent} %</strong><span>données partants</span></article>
         <article><small>Performances passées</small><strong>{history.pastPerformances}</strong><span>{history.entriesWithHistory} partants documentés</span></article>
+        <article><small>Météo horaire</small><strong>{history.weatherSnapshots}</strong><span>courses contextualisées</span></article>
+        <article><small>Rapports</small><strong>{history.reports}</strong><span>rapports définitifs</span></article>
       </section>
 
       <section className="dataNotice">

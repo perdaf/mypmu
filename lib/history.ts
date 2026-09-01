@@ -25,6 +25,7 @@ export type HistoryOverview = {
   reports: number;
   pastPerformances: number;
   entriesWithHistory: number;
+  weatherSnapshots: number;
   averageCompletenessPercent: number;
   usableForBacktest: number;
   programmeDates: number;
@@ -42,6 +43,7 @@ type TotalsRow = {
   reports: number;
   pastPerformances: number;
   entriesWithHistory: number;
+  weatherSnapshots: number;
   averageCompleteness: number | null;
   usableForBacktest: number;
   programmeDates: number;
@@ -65,6 +67,7 @@ export function getHistoryOverview(): HistoryOverview {
           SELECT 1 FROM race_entry_performance_snapshots s
           WHERE s.target_race_id = e.race_id AND s.pmu_number = e.pmu_number
         )) AS entriesWithHistory,
+        (SELECT COUNT(*) FROM race_weather) AS weatherSnapshots,
         (SELECT AVG(data_completeness) FROM race_entries) AS averageCompleteness,
         (
           SELECT COUNT(*) FROM races r

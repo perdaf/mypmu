@@ -2,6 +2,7 @@ import { assertPmuDate } from "../lib/date";
 import { initializeDatabase } from "../lib/db";
 import { createHash } from "node:crypto";
 import { getDetailedPerformances, getFinalReports, getParticipants, getProgramme, type DetailedPerformances, type FinalReports, type Participant } from "../lib/pmu";
+import { geocodeVenue, getRaceWeather, type RaceWeather, type VenueCoordinates } from "../lib/weather";
 
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
@@ -56,6 +57,7 @@ function persistRace(
   participants: Participant[],
   finalReports: FinalReports,
   detailedPerformances: DetailedPerformances | null,
+  weather: { coordinates: VenueCoordinates; value: RaceWeather } | null,
 ) {
   const collectedAt = now();
   const id = raceId(reunion.numOfficiel, course.numOrdre);
@@ -148,6 +150,19 @@ function persistRace(
     }
   }
 
+  if (weather) {
+    database.prepare(`
+      INSERT INTO venues (name, resolved_name, latitude, longitude, timezone, country, source, resolved_at)
+      VALUES (?, ?, ?, ?, ?, ?, 'OSM_NOMINATIM', ?)
+      ON CONFLICT(name) DO UPDATE SET resolved_name=excluded.resolved_name, latitude=excluded.latitude, longitude=excluded.longitude, timezone=excluded.timezone, country=excluded.country, resolved_at=excluded.resolved_at
+    `).run(reunion.hippodrome?.libelleLong ?? reunion.hippodrome?.libelleCourt, weather.coordinates.resolvedName, weather.coordinates.latitude, weather.coordinates.longitude, weather.coordinates.timezone, weather.coordinates.country ?? null, collectedAt);
+    database.prepare(`
+      INSERT INTO race_weather (race_id, venue_name, observed_for, temperature_c, relative_humidity_percent, precipitation_mm, weather_code, wind_speed_kmh, wind_gusts_kmh, soil_moisture, source, raw_json, collected_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(race_id) DO UPDATE SET observed_for=excluded.observed_for, temperature_c=excluded.temperature_c, relative_humidity_percent=excluded.relative_humidity_percent, precipitation_mm=excluded.precipitation_mm, weather_code=excluded.weather_code, wind_speed_kmh=excluded.wind_speed_kmh, wind_gusts_kmh=excluded.wind_gusts_kmh, soil_moisture=excluded.soil_moisture, source=excluded.source, raw_json=excluded.raw_json, collected_at=excluded.collected_at
+    `).run(id, reunion.hippodrome?.libelleLong ?? reunion.hippodrome?.libelleCourt, weather.value.observedFor, weather.value.temperature, weather.value.humidity, weather.value.precipitation, weather.value.weatherCode, weather.value.windSpeed, weather.value.windGusts, weather.value.soilMoisture, weather.value.source, weather.value.rawJson, collectedAt);
+  }
+
   const upsertBet = database.prepare(`
     INSERT INTO race_bets (race_id, bet_code, base_stake_cents, on_sale, ordered, combinable, required_horses, flexi_values, risk_values, collected_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -204,7 +219,22 @@ try {
       console.warn(`Performances détaillées indisponibles R${reunion.numOfficiel} C${course.numOrdre}:`, error instanceof Error ? error.message : error);
       return null;
     });
-    database.transaction(() => persistRace(reunion, course, participants, finalReports, detailedPerformances))();
+    const venueName = reunion.hippodrome?.libelleLong ?? reunion.hippodrome?.libelleCourt;
+    let weather: { coordinates: VenueCoordinates; value: RaceWeather } | null = null;
+    if (venueName && course.heureDepart) {
+      const cached = database.prepare("SELECT resolved_name AS resolvedName, latitude, longitude, timezone, country FROM venues WHERE name = ?").get(venueName) as VenueCoordinates | undefined;
+      const coordinates = cached ?? await geocodeVenue(venueName).catch(() => null);
+      if (coordinates) {
+        const value = await getRaceWeather(coordinates, course.heureDepart).catch((error) => {
+          console.warn(`Météo indisponible R${reunion.numOfficiel} C${course.numOrdre}:`, error instanceof Error ? error.message : error);
+          return null;
+        });
+        if (value) weather = { coordinates, value };
+      } else {
+        console.warn(`Hippodrome non géocodé : ${venueName}`);
+      }
+    }
+    database.transaction(() => persistRace(reunion, course, participants, finalReports, detailedPerformances, weather))();
     entriesCollected += participants.length;
     console.log(`Collecté R${reunion.numOfficiel} C${course.numOrdre} : ${participants.length} partants`);
   }
