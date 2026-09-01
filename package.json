@@ -17,7 +17,9 @@
     "collect:weather": "tsx scripts/collect-weather.ts",
     "collect:history": "tsx scripts/collect-history.ts",
     "collect:quinte": "tsx scripts/collect-quinte.ts",
-    "collect:quinte:watch": "tsx scripts/watch-quinte.ts"
+    "collect:quinte:watch": "tsx scripts/watch-quinte.ts",
+    "model:train": "tsx scripts/train-model.ts",
+    "model:train:if-needed": "tsx scripts/train-model.ts --if-needed"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

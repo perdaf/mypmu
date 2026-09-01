@@ -186,7 +186,7 @@ export function BetSimulator({ bets, participants, reunion, course, recommendati
   return (
     <section className="betSection">
       <div className="sectionHeading"><div><p className="eyebrow">Analyse de la course</p><h2>Proposition automatique</h2></div><p>Score expérimental · R{reunion} C{course}</p></div>
-      <div className="analysisNotice"><strong>Le moteur combine consensus presse, cote, carrière et performances passées comparables.</strong> Distance, discipline, hippodrome, régularité et disqualifications ne pèsent dans le score que lorsque l’historique est suffisant. Ce classement ne garantit pas un gain.</div>
+      <div className="analysisNotice"><strong>Le moteur combine le modèle probabiliste actif avec le consensus presse, la cote, la carrière et les performances comparables.</strong> La contribution de l’IA est réduite lorsque les données du cheval sont incomplètes. Ce classement ne garantit pas un gain.</div>
       <div className={recommendation.dataQuality.recommendationAllowed ? "qualityIndicator qualityGood" : "qualityIndicator qualityInsufficient"}>
         <strong>Qualité des données : {recommendation.dataQuality.completenessPercent} %</strong>
         <span>{recommendation.dataQuality.recommendationAllowed ? `${recommendation.dataQuality.lowConfidenceHorses} partant(s) à faible confiance — recommandation autorisée` : recommendation.dataQuality.warning}</span>

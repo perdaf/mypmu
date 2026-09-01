@@ -52,6 +52,24 @@ export default function HistoryPage() {
         </p>
       </section>
 
+      <section className="modelPanel">
+        <div>
+          <p className="eyebrow">Modèle probabiliste</p>
+          <h2>{history.model.activeVersion ? "Premier modèle actif" : "Aucun modèle actif"}</h2>
+          <p>{history.model.notes ?? "L’entraînement démarrera lorsque l’historique sera suffisant."}</p>
+        </div>
+        <div className="modelFacts">
+          <span><small>Version</small><strong>{history.model.activeVersion ?? "—"}</strong></span>
+          <span><small>Apprentissage / validation</small><strong>{history.model.trainingRaces} / {history.model.validationRaces} courses</strong></span>
+          <span><small>Erreur de Brier moyenne</small><strong>{history.model.aggregateBrier?.toFixed(3) ?? "—"}</strong></span>
+          <span><small>Nouvelles courses</small><strong>{history.model.newCompletedRaces} / 20</strong></span>
+        </div>
+        <div className={history.model.retrainingRecommended ? "modelRetrain due" : "modelRetrain"}>
+          <strong>{history.model.retrainingRecommended ? "Réentraînement recommandé" : "Modèle à jour"}</strong>
+          <span>{history.model.trainedAt ? `Dernier entraînement : ${new Date(history.model.trainedAt).toLocaleString("fr-FR")}` : "Jamais entraîné"}</span>
+        </div>
+      </section>
+
       <section className="collectionSection">
         <div className="sectionHeading">
           <div><p className="eyebrow">Collecte multi-source</p><h2>État opérationnel</h2></div>

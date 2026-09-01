@@ -58,4 +58,10 @@ Le pilotage et le suivi du collecteur Quinté+ sont intégrés à l'application 
 - une erreur de connexion invite à vérifier le réseau et le VPN sans affirmer que le VPN est nécessairement la cause ;
 - le bouton « Relancer maintenant » lance une collecte ponctuelle.
 
-Avant cette évolution, préserver toute modification locale de `data/mypmu.sqlite` provenant d'une collecte en cours et appliquer le workflow SQLite partagé ci-dessus.
+## Cycle d’apprentissage
+
+- `npm run model:train` entraîne les probabilités Top 1/3/4/5 et conserve les dernières courses pour la validation chronologique.
+- `npm run model:train:if-needed` ne réentraîne qu’après 20 nouvelles courses terminées.
+- La collecte Quinté+ rafraîchit les prédictions après chaque passage et déclenche ce contrôle automatiquement.
+- Ne promouvoir un candidat que s’il améliore le modèle actif sur le même jeu de validation ; conserver les versions rejetées pour audit.
+- Toute nouvelle variable doit être disponible avant le départ de la course cible afin d’éviter une fuite de résultats futurs.

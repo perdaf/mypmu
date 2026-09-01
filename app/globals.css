@@ -92,6 +92,19 @@ button, .primaryButton { background: var(--gold); border: 0; color: #1d241f; cur
 .historyMetrics span { color: var(--muted); font-size: 10px; }
 .dataNotice { background: var(--green-light); border-left: 4px solid var(--green); display: grid; gap: 7px; margin-top: 20px; padding: 20px 24px; }
 .dataNotice p { color: #42564a; font-size: 12px; line-height: 1.6; margin: 0; }
+.modelPanel { background: var(--ink); color: white; display: grid; gap: 24px; grid-template-columns: 1fr 1.3fr; margin-top: 20px; padding: 26px; }
+.modelPanel h2 { font-size: 30px; margin: 0 0 9px; }
+.modelPanel > div:first-child > p:last-child { color: #aeb8b2; font-size: 11px; line-height: 1.5; margin: 0; }
+.modelPanel .eyebrow { color: var(--gold); }
+.modelFacts { display: grid; grid-template-columns: repeat(2, 1fr); }
+.modelFacts span { border-bottom: 1px solid rgba(255,255,255,.14); display: grid; gap: 6px; padding: 10px 12px; }
+.modelFacts small { color: #9ba9a0; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.modelFacts strong { font-size: 11px; overflow-wrap: anywhere; }
+.modelRetrain { align-items: center; background: #26372e; display: flex; gap: 14px; grid-column: 1 / -1; justify-content: space-between; padding: 12px 15px; }
+.modelRetrain strong { color: #74c995; font-size: 11px; text-transform: uppercase; }
+.modelRetrain span { color: #aeb8b2; font-size: 10px; }
+.modelRetrain.due { background: #4b3c20; }
+.modelRetrain.due strong { color: var(--gold); }
 .historyTableSection { margin-top: 52px; }
 .collectionSection { margin-top: 52px; }
 .sourceGrid { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
@@ -320,6 +333,7 @@ tbody tr:hover { background: #f7f4eb; }
   .collectorActions { align-items: stretch; flex-direction: column; }
   .collectorActions button { margin-left: 0; }
   .historyHeading { grid-template-columns: 1fr; }
+  .modelPanel { grid-template-columns: 1fr; }
   .historyMetrics { grid-template-columns: repeat(2, 1fr); }
   .historyMetrics article:nth-child(2n) { border-right: 0; }
   .historyMetrics article { border-bottom: 1px solid var(--line); }

@@ -4,6 +4,7 @@ import { findCourse, getDetailedPerformances, getParticipants, getProgramme, get
 import { BetSimulator } from "@/components/bet-simulator";
 import { analyseRace } from "@/lib/analysis";
 import { buildHistoricalIndicators, loadStoredHistoricalIndicators } from "@/lib/historical-indicators";
+import { loadActivePredictions } from "@/lib/model-predictions";
 
 type PageProps = { params: Promise<{ date: string; reunion: string; course: string }> };
 
@@ -39,7 +40,8 @@ export default async function CoursePage({ params }: PageProps) {
   };
   const liveHistory = buildHistoricalIndicators(detailedPerformances, raceContext);
   const history = liveHistory.size > 0 ? liveHistory : loadStoredHistoricalIndicators(`${date}-R${reunion}-C${courseNumber}`, raceContext);
-  const recommendation = analyseRace(activeParticipants, pronostics, course.paris, history);
+  const predictions = loadActivePredictions(`${date}-R${reunion}-C${courseNumber}`);
+  const recommendation = analyseRace(activeParticipants, pronostics, course.paris, history, predictions);
 
   return (
     <main>

@@ -35,6 +35,18 @@ export type HistoryOverview = {
   firstDate: string | null;
   lastDate: string | null;
   recentRaces: HistoryRace[];
+  model: {
+    status: string;
+    activeVersion: string | null;
+    trainedAt: string | null;
+    trainingRaces: number;
+    validationRaces: number;
+    aggregateBrier: number | null;
+    completedRacesAtTraining: number;
+    newCompletedRaces: number;
+    retrainingRecommended: boolean;
+    notes: string | null;
+  };
   collection: {
     days: { completed: number; failed: number; running: number; pending: number };
     recentRuns: Array<{
@@ -141,6 +153,22 @@ export function getHistoryOverview(): HistoryOverview {
       FROM ingestion_runs ORDER BY id DESC LIMIT 8
     `).all() as HistoryOverview["collection"]["recentRuns"];
     const latestPmuRun = recentRuns.find((run) => run.source === "PMU");
+    const trainingState = database.prepare(`
+      SELECT status, active_version AS activeVersion,
+        completed_races_at_last_training AS completedRacesAtTraining,
+        retraining_recommended AS retrainingRecommended
+      FROM model_training_state WHERE id=1
+    `).get() as { status: string; activeVersion: string | null; completedRacesAtTraining: number; retrainingRecommended: number } | undefined;
+    const activeModel = database.prepare(`
+      SELECT version, trained_at AS trainedAt, training_races AS trainingRaces,
+        validation_races AS validationRaces, metrics_json AS metricsJson, notes
+      FROM model_versions WHERE status='active' ORDER BY promoted_at DESC LIMIT 1
+    `).get() as { version: string; trainedAt: string; trainingRaces: number; validationRaces: number; metricsJson: string; notes: string | null } | undefined;
+    let aggregateBrier: number | null = null;
+    if (activeModel) {
+      try { aggregateBrier = (JSON.parse(activeModel.metricsJson) as { aggregateBrier?: number }).aggregateBrier ?? null; } catch { aggregateBrier = null; }
+    }
+    const newCompletedRaces = Math.max(0, totals.completedRaces - (trainingState?.completedRacesAtTraining ?? 0));
     const sources = providerCatalog().map((source) => {
       if (source.id === "PMU" && latestPmuRun?.status === "failed") {
         return { ...source, usable: false, note: `Dernier appel en échec : ${latestPmuRun.errorMessage ?? "cause inconnue"}. Une relance sera tentée.` };
@@ -153,6 +181,18 @@ export function getHistoryOverview(): HistoryOverview {
       ...totals,
       averageCompletenessPercent: Math.round((totals.averageCompleteness ?? 0) * 100),
       recentRaces: recentRaces.map((race) => ({ ...race, completenessPercent: Math.round(race.completenessPercent) })),
+      model: {
+        status: trainingState?.status ?? "never",
+        activeVersion: activeModel?.version ?? trainingState?.activeVersion ?? null,
+        trainedAt: activeModel?.trainedAt ?? null,
+        trainingRaces: activeModel?.trainingRaces ?? 0,
+        validationRaces: activeModel?.validationRaces ?? 0,
+        aggregateBrier,
+        completedRacesAtTraining: trainingState?.completedRacesAtTraining ?? 0,
+        newCompletedRaces,
+        retrainingRecommended: Boolean(trainingState?.retrainingRecommended) || newCompletedRaces >= 20,
+        notes: activeModel?.notes ?? null,
+      },
       collection: { days: dayCounts, recentRuns, sources },
     };
   } finally {

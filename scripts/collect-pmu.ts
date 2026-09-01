@@ -5,6 +5,7 @@ import { type DetailedPerformances, type FinalReports, type Participant, type Pr
 import { pmuProvider } from "../lib/providers";
 import { geocodeVenue, getRaceWeather, type RaceWeather, type VenueCoordinates } from "../lib/weather";
 import { classifyCollectorError, updateCollectorStatus } from "../lib/collector-status";
+import { trainAndPromoteModel } from "../lib/model-training";
 
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
@@ -252,6 +253,10 @@ try {
     entriesCollected, errorKind: null, errorMessage: null, processId: null,
   });
   console.log(`Collecte terminée : ${targets.length} courses, ${entriesCollected} partants.`);
+  if (quinteOnly) {
+    const training = trainAndPromoteModel(database, { onlyIfNeeded: true });
+    if (training.status !== "not_needed") console.log(`Cycle modèle : ${training.status}.`);
+  }
 } catch (error) {
   if (runId !== undefined) database.prepare("UPDATE ingestion_runs SET finished_at=?, status='failed', error_message=? WHERE id=?").run(now(), error instanceof Error ? error.message : String(error), runId);
   if (quinteOnly) updateCollectorStatus({

@@ -163,6 +163,36 @@ CREATE TABLE IF NOT EXISTS model_predictions (
   UNIQUE (race_id, pmu_number, model_version)
 );
 
+CREATE TABLE IF NOT EXISTS model_versions (
+  version TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK (status IN ('candidate', 'active', 'rejected')),
+  trained_at TEXT NOT NULL,
+  promoted_at TEXT,
+  training_races INTEGER NOT NULL,
+  validation_races INTEGER NOT NULL,
+  training_entries INTEGER NOT NULL,
+  validation_entries INTEGER NOT NULL,
+  feature_names_json TEXT NOT NULL,
+  normalization_json TEXT NOT NULL,
+  coefficients_json TEXT NOT NULL,
+  metrics_json TEXT NOT NULL,
+  notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS model_training_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  last_attempt_at TEXT,
+  last_success_at TEXT,
+  last_version TEXT,
+  active_version TEXT,
+  completed_races_at_last_training INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL CHECK (status IN ('never', 'training', 'active', 'rejected', 'insufficient', 'failed')),
+  retraining_recommended INTEGER NOT NULL DEFAULT 0,
+  error_message TEXT,
+  FOREIGN KEY (last_version) REFERENCES model_versions(version),
+  FOREIGN KEY (active_version) REFERENCES model_versions(version)
+);
+
 -- Une performance passée est normalisée une seule fois, même si elle apparaît
 -- dans l'historique de plusieurs courses cibles collectées à des dates différentes.
 CREATE TABLE IF NOT EXISTS horse_performances (

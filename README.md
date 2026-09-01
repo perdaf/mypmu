@@ -34,7 +34,21 @@ Le simulateur exploite `miseBase`, `valeursFlexiAutorisees` et `valeursRisqueAut
 
 La fiche course génère automatiquement un classement explicable à partir de la cote, de la musique récente, du bilan de carrière, du consensus des pronostiqueurs et de l’avis de l’entraîneur. Elle préremplit trois jeux complémentaires : sécurité, couverture et objectif Quinté+. Un outsider n’est retenu que lorsque ses indicateurs sportifs et son soutien dépassent ce que suggère sa cote ; il n’est jamais ajouté au hasard.
 
-Ce classement est une première heuristique transparente. Il devra être remplacé ou recalibré après collecte historique et backtest chronologique avant d’afficher des probabilités de gain.
+Lorsqu’un modèle actif dispose d’une prédiction enregistrée avant la course, sa probabilité intervient au maximum à hauteur de 35 % dans le score, puis est réduite selon la complétude et la profondeur historique du cheval. L’heuristique transparente reste disponible lorsque le modèle ne peut pas se prononcer.
+
+## Apprentissage versionné
+
+Le premier modèle logistique estime séparément les probabilités de victoire et de présence dans les 3, 4 et 5 premiers. Ses variables couvrent notamment le marché, la carrière, la forme sur dix courses, la régularité, la discipline, la distance, l’hippodrome, la récupération et les données manquantes.
+
+```bash
+# Forcer un entraînement et une validation chronologique
+npm run model:train
+
+# Entraîner seulement si 20 nouvelles courses terminées sont disponibles
+npm run model:train:if-needed
+```
+
+Les courses les plus récentes sont toujours réservées à la validation. Un candidat remplace le modèle actif seulement s’il améliore d’au moins 0,5 % l’erreur de Brier moyenne sur la même validation. Après chaque collecte Quinté+, les prédictions des courses à venir sont rafraîchies ; un réentraînement est automatiquement tenté au seuil de 20 nouvelles courses complètes. Les versions rejetées restent en base pour audit.
 
 ## Base historique
 
@@ -127,7 +141,7 @@ La fiche course transforme cet historique en indicateurs de forme, régularité,
 
 La météo horaire est fournie par Open-Meteo après géocodage précis et mis en cache via OpenStreetMap Nominatim, puis stockée dans `race_weather` avec sa source. Elle décrit les conditions atmosphériques proches du départ, mais ne remplace jamais l’état officiel du terrain ou de la piste. L’accès PMU essaie successivement les passerelles `online` et `offline`; la liste peut être remplacée avec `MYPMU_PMU_API_ROOTS` (URLs séparées par des virgules).
 
-Le projet ne fournit pas de garantie de gain. Les futures probabilités devront être calculées à partir de données historiques et évaluées par backtest chronologique.
+Le projet ne fournit pas de garantie de gain. Les probabilités restent expérimentales tant que l’historique est limité ; leur version, leur découpage chronologique et leur erreur de validation sont affichés dans « Historique & IA ».
 
 ## Historique du prototype
 
