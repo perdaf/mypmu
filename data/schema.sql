@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
   status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'failed')),
   races_collected INTEGER NOT NULL DEFAULT 0,
   entries_collected INTEGER NOT NULL DEFAULT 0,
-  error_message TEXT
+  error_message TEXT,
+  source TEXT NOT NULL DEFAULT 'PMU'
 );
 
 CREATE TABLE IF NOT EXISTS historical_collection_days (
@@ -22,7 +23,8 @@ CREATE TABLE IF NOT EXISTS historical_collection_days (
   finished_at TEXT,
   duration_ms INTEGER,
   error_message TEXT,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT 'PMU'
 );
 
 CREATE TABLE IF NOT EXISTS races (

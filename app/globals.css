@@ -71,6 +71,25 @@ button, .primaryButton { background: var(--gold); border: 0; color: #1d241f; cur
 .dataNotice { background: var(--green-light); border-left: 4px solid var(--green); display: grid; gap: 7px; margin-top: 20px; padding: 20px 24px; }
 .dataNotice p { color: #42564a; font-size: 12px; line-height: 1.6; margin: 0; }
 .historyTableSection { margin-top: 52px; }
+.collectionSection { margin-top: 52px; }
+.sourceGrid { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
+.sourceCard { background: var(--card); border: 1px solid var(--line); padding: 18px; }
+.sourceCard > div { align-items: start; display: flex; gap: 10px; justify-content: space-between; }
+.sourceCard > div span { font-size: 8px; font-weight: 900; padding: 5px 6px; text-transform: uppercase; }
+.sourceReady > div span { background: var(--green-light); color: var(--green); }
+.sourceUnavailable > div span { background: #f4dede; color: #8c2727; }
+.sourceCard p { font-size: 11px; line-height: 1.4; margin: 18px 0 8px; }
+.sourceCard small { color: var(--muted); font-size: 10px; line-height: 1.45; }
+.resumeCommand { align-items: center; background: #efe8d5; display: grid; gap: 7px; grid-template-columns: 1fr auto; margin-top: 16px; padding: 18px 20px; }
+.resumeCommand code { background: var(--ink); color: white; font-size: 11px; padding: 10px 12px; }
+.resumeCommand span { color: var(--muted); font-size: 10px; }
+.collectionRuns { margin-top: 16px; }
+.collectionRuns table { min-width: 900px; }
+.runStatus { font-size: 9px; font-weight: 900; padding: 5px 7px; text-transform: uppercase; }
+.status-completed { background: var(--green-light); color: var(--green); }
+.status-failed { background: #f4dede; color: #8c2727; }
+.status-running, .status-pending { background: #efe8d5; color: #795b16; }
+.runError { color: #8c2727; font-size: 10px; max-width: 300px; }
 .historyTable { min-width: 950px; }
 .historyTable td:nth-child(7) { font-family: ui-monospace, monospace; white-space: nowrap; }
 .qualityBadge { display: inline-block; font-size: 10px; font-weight: 800; padding: 5px 7px; }
@@ -274,6 +293,8 @@ tbody tr:hover { background: #f7f4eb; }
   .historyMetrics { grid-template-columns: repeat(2, 1fr); }
   .historyMetrics article:nth-child(2n) { border-right: 0; }
   .historyMetrics article { border-bottom: 1px solid var(--line); }
+  .sourceGrid { grid-template-columns: 1fr; }
+  .resumeCommand { align-items: start; grid-template-columns: 1fr; }
   .pageHeading { align-items: start; flex-direction: column; gap: 22px; }
   .courseRow { grid-template-columns: 38px 1fr auto 20px; padding: 16px; }
   .betTag { display: none; }

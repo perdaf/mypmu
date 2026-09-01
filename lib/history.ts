@@ -1,4 +1,5 @@
 import { openDatabase } from "./db";
+import { providerCatalog, type ProviderDescriptor } from "./providers";
 
 export const MINIMUM_BACKTEST_RACES = 100;
 
@@ -32,6 +33,21 @@ export type HistoryOverview = {
   firstDate: string | null;
   lastDate: string | null;
   recentRaces: HistoryRace[];
+  collection: {
+    days: { completed: number; failed: number; running: number; pending: number };
+    recentRuns: Array<{
+      id: number;
+      programmeDate: string;
+      startedAt: string;
+      finishedAt: string | null;
+      status: string;
+      racesCollected: number;
+      entriesCollected: number;
+      errorMessage: string | null;
+      source: string;
+    }>;
+    sources: ProviderDescriptor[];
+  };
 };
 
 type TotalsRow = {
@@ -104,10 +120,34 @@ export function getHistoryOverview(): HistoryOverview {
       LIMIT 20
     `).all() as HistoryRace[];
 
+    const dayCounts = database.prepare(`
+      SELECT
+        COALESCE(SUM(status = 'completed'), 0) AS completed,
+        COALESCE(SUM(status = 'failed'), 0) AS failed,
+        COALESCE(SUM(status = 'running'), 0) AS running,
+        COALESCE(SUM(status = 'pending'), 0) AS pending
+      FROM historical_collection_days
+    `).get() as { completed: number; failed: number; running: number; pending: number };
+    const recentRuns = database.prepare(`
+      SELECT id, programme_date AS programmeDate, started_at AS startedAt, finished_at AS finishedAt,
+        status, races_collected AS racesCollected, entries_collected AS entriesCollected,
+        error_message AS errorMessage, source
+      FROM ingestion_runs ORDER BY id DESC LIMIT 8
+    `).all() as HistoryOverview["collection"]["recentRuns"];
+    const latestPmuRun = recentRuns.find((run) => run.source === "PMU");
+    const sources = providerCatalog().map((source) => {
+      if (source.id === "PMU" && latestPmuRun?.status === "failed") {
+        return { ...source, usable: false, note: `Dernier appel en échec : ${latestPmuRun.errorMessage ?? "cause inconnue"}. Une relance sera tentée.` };
+      }
+      if (source.id === "OPEN_METEO" && totals.weatherSnapshots === 0) return { ...source, usable: false, note: "Aucune observation encore enregistrée." };
+      return source;
+    });
+
     return {
       ...totals,
       averageCompletenessPercent: Math.round((totals.averageCompleteness ?? 0) * 100),
       recentRaces: recentRaces.map((race) => ({ ...race, completenessPercent: Math.round(race.completenessPercent) })),
+      collection: { days: dayCounts, recentRuns, sources },
     };
   } finally {
     database.close();

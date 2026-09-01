@@ -49,6 +49,39 @@ export default function HistoryPage() {
         </p>
       </section>
 
+      <section className="collectionSection">
+        <div className="sectionHeading">
+          <div><p className="eyebrow">Collecte multi-source</p><h2>État opérationnel</h2></div>
+          <p>{history.collection.days.completed} terminée(s) · {history.collection.days.failed} en échec · {history.collection.days.pending} en attente</p>
+        </div>
+        <div className="sourceGrid">
+          {history.collection.sources.map((source) => (
+            <article key={source.id} className={source.usable ? "sourceCard sourceReady" : "sourceCard sourceUnavailable"}>
+              <div><strong>{source.label}</strong><span>{source.usable ? "Disponible" : source.configured ? "À valider" : "Non configuré"}</span></div>
+              <p>{source.role}</p><small>{source.note}</small>
+            </article>
+          ))}
+        </div>
+        {history.collection.days.failed > 0 && <div className="resumeCommand"><strong>Reprendre les journées échouées</strong><code>npm run collect:history -- JJMMAAAA JJMMAAAA</code><span>Une relance ignore les journées terminées et reprend automatiquement les échecs.</span></div>}
+        <div className="tableWrap collectionRuns">
+          <table>
+            <thead><tr><th>Date du programme</th><th>Source</th><th>Statut</th><th>Courses</th><th>Partants</th><th>Début</th><th>Détail</th></tr></thead>
+            <tbody>
+              {history.collection.recentRuns.map((run) => (
+                <tr key={run.id}>
+                  <td>{formatPmuDate(run.programmeDate)}</td><td>{run.source}</td>
+                  <td><span className={`runStatus status-${run.status}`}>{run.status}</span></td>
+                  <td>{run.racesCollected}</td><td>{run.entriesCollected}</td>
+                  <td>{new Date(run.startedAt).toLocaleString("fr-FR")}</td>
+                  <td className="runError">{run.errorMessage ?? "—"}</td>
+                </tr>
+              ))}
+              {history.collection.recentRuns.length === 0 && <tr><td colSpan={7}>Aucune exécution enregistrée.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section className="historyTableSection">
         <div className="sectionHeading">
           <div><p className="eyebrow">Couverture</p><h2>Courses enregistrées</h2></div>

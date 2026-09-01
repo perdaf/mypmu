@@ -74,6 +74,8 @@ npm run collect:history -- 01012026 31012026 --force
 
 Le rattrapage effectue deux tentatives par journée, attend deux secondes entre les journées et impose au collecteur PMU un délai minimal de 500 ms entre requêtes. Les options `--attempts=`, `--delay-ms=` et la variable `MYPMU_REQUEST_DELAY_MS` permettent d’ajuster ces limites. Un `Ctrl+C` marque la journée courante comme `pending`; la prochaine exécution la reprendra. La plage est volontairement limitée à 366 jours par lancement.
 
+La page `/historique` affiche les sources configurées, les journées terminées ou échouées et les dernières erreurs d’ingestion. Le collecteur utilise actuellement PMU pour les données hippiques, OpenStreetMap pour les coordonnées et Open-Meteo pour les conditions horaires. Turf.bzh reste déclaré comme fournisseur secondaire optionnel mais désactivé tant qu’aucune clé personnelle n’est fournie ; aucune clé ne doit être ajoutée au dépôt.
+
 L’intervalle peut être réglé avec `MYPMU_COLLECTION_INTERVAL_MS`, sans descendre sous une minute. Une exécution complète quotidienne prépare le programme ; la surveillance conserve ensuite les mouvements de cote proches du départ et récupère les résultats/rapports lorsqu’ils deviennent disponibles.
 
 La base `data/mypmu.sqlite` est versionnée afin de partager le même historique entre les postes de développement. Son schéma se trouve dans `data/schema.sql`. La collecte est relançable : courses, chevaux et partants sont mis à jour sans doublon, tandis que chaque nouvelle cote est conservée comme un instantané daté.

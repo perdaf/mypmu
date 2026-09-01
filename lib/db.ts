@@ -18,6 +18,12 @@ export function openDatabase() {
 export function initializeDatabase(database = openDatabase()) {
   const schema = fs.readFileSync(path.join(process.cwd(), "data", "schema.sql"), "utf8");
   database.exec(schema);
+  const ensureColumn = (table: string, column: string, definition: string) => {
+    const columns = database.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+    if (columns.length > 0 && !columns.some((item) => item.name === column)) database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  };
+  ensureColumn("ingestion_runs", "source", "TEXT NOT NULL DEFAULT 'PMU'");
+  ensureColumn("historical_collection_days", "source", "TEXT NOT NULL DEFAULT 'PMU'");
   const reportColumns = database.prepare("PRAGMA table_info(bet_reports)").all() as Array<{ name: string }>;
   if (reportColumns.length > 0 && !reportColumns.some((column) => column.name === "report_label")) {
     database.exec(`

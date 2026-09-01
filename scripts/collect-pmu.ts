@@ -1,7 +1,8 @@
 import { assertPmuDate } from "../lib/date";
 import { initializeDatabase } from "../lib/db";
 import { createHash } from "node:crypto";
-import { getDetailedPerformances, getFinalReports, getParticipants, getProgramme, type DetailedPerformances, type FinalReports, type Participant } from "../lib/pmu";
+import { type DetailedPerformances, type FinalReports, type Participant, type Programme } from "../lib/pmu";
+import { pmuProvider } from "../lib/providers";
 import { geocodeVenue, getRaceWeather, type RaceWeather, type VenueCoordinates } from "../lib/weather";
 
 const cliArguments = process.argv.slice(2);
@@ -52,8 +53,8 @@ function performanceId(horse: string, racedAt: number, hippodrome: string | null
 }
 
 function persistRace(
-  reunion: Awaited<ReturnType<typeof getProgramme>>["reunions"][number],
-  course: Awaited<ReturnType<typeof getProgramme>>["reunions"][number]["courses"][number],
+  reunion: Programme["reunions"][number],
+  course: Programme["reunions"][number]["courses"][number],
   participants: Participant[],
   finalReports: FinalReports,
   detailedPerformances: DetailedPerformances | null,
@@ -197,7 +198,7 @@ let runId: number | bigint | undefined;
 try {
   const startedAt = now();
   runId = database.prepare("INSERT INTO ingestion_runs (programme_date, started_at, status) VALUES (?, ?, 'running')").run(programmeDate, startedAt).lastInsertRowid;
-  const programme = await getProgramme(programmeDate);
+  const programme = await pmuProvider.getProgramme(programmeDate);
   const currentTime = Date.now();
   const activeWindowMs = 45 * 60 * 1000;
   const targets = programme.reunions.flatMap((reunion) => reunion.courses
@@ -208,14 +209,14 @@ try {
 
   let entriesCollected = 0;
   for (const { reunion, course } of targets) {
-    const participants = await getParticipants(programmeDate, reunion.numOfficiel, course.numOrdre);
+    const participants = await pmuProvider.getParticipants(programmeDate, reunion.numOfficiel, course.numOrdre);
     const finalReports = course.rapportsDefinitifsDisponibles
-      ? await getFinalReports(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
+      ? await pmuProvider.getFinalReports(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
           console.warn(`Rapports indisponibles R${reunion.numOfficiel} C${course.numOrdre}:`, error instanceof Error ? error.message : error);
           return [];
         })
       : [];
-    const detailedPerformances = await getDetailedPerformances(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
+    const detailedPerformances = await pmuProvider.getDetailedPerformances(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
       console.warn(`Performances détaillées indisponibles R${reunion.numOfficiel} C${course.numOrdre}:`, error instanceof Error ? error.message : error);
       return null;
     });
