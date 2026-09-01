@@ -13,6 +13,21 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
   source TEXT NOT NULL DEFAULT 'PMU'
 );
 
+CREATE TABLE IF NOT EXISTS collector_status (
+  collector_id TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK (status IN ('stopped', 'starting', 'waiting', 'collecting', 'success', 'error')),
+  watcher_active INTEGER NOT NULL DEFAULT 0,
+  last_attempt_at TEXT,
+  last_success_at TEXT,
+  next_attempt_at TEXT,
+  races_collected INTEGER NOT NULL DEFAULT 0,
+  entries_collected INTEGER NOT NULL DEFAULT 0,
+  error_kind TEXT,
+  error_message TEXT,
+  process_id INTEGER,
+  updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS historical_collection_days (
   programme_date TEXT PRIMARY KEY,
   status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'completed', 'failed')),

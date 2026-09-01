@@ -46,3 +46,16 @@ Ces règles s'appliquent à tout le dépôt MyPMU, quel que soit le poste de dé
   ```
 
 - Ne jamais présenter les recommandations de jeu comme une garantie de gain. Les scores et probabilités doivent rester explicables, être évalués chronologiquement et traiter explicitement les données manquantes.
+
+## Pilotage du collecteur Quinté+
+
+Le pilotage et le suivi du collecteur Quinté+ sont intégrés à l'application :
+
+- `npm run dev:all` démarre ensemble l'application web et `collect:quinte:watch`, avec arrêt coordonné des processus ;
+- l'état persistant distingue l'attente, la collecte en cours, la réussite et l'échec ;
+- l'accueil et « Historique & IA » affichent les dernières tentatives et réussites ainsi que les volumes collectés ;
+- les erreurs réseau/API PMU et SQLite sont distinguées ;
+- une erreur de connexion invite à vérifier le réseau et le VPN sans affirmer que le VPN est nécessairement la cause ;
+- le bouton « Relancer maintenant » lance une collecte ponctuelle.
+
+Avant cette évolution, préserver toute modification locale de `data/mypmu.sqlite` provenant d'une collecte en cours et appliquer le workflow SQLite partagé ci-dessus.

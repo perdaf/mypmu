@@ -70,6 +70,14 @@ npm run collect:quinte
 npm run collect:quinte:watch
 ```
 
+Pour démarrer l'application et la surveillance Quinté+ dans un seul terminal :
+
+```bash
+npm run dev:all
+```
+
+L'accueil et la page « Historique & IA » affichent l'état du collecteur, la dernière tentative, la dernière réussite et les volumes récupérés. Le bouton « Relancer maintenant » déclenche une collecte ponctuelle. Lorsque PMU est inaccessible, l'interface conseille de vérifier le réseau et le VPN sans attribuer automatiquement l'incident au VPN.
+
 Le support est identifié par le marqueur officiel `QUINTE_PLUS` du programme PMU. Les autres courses restent utiles à l’historique général, mais ce mode limite les relevés fréquents à la course correspondant à votre usage. L’intervalle se règle avec `MYPMU_QUINTE_INTERVAL_MS`, avec un minimum d’une minute.
 
 Les chevaux ne sont pas recréés à chaque apparition : `horses.id` est réutilisé, les engagements sont uniques par course/numéro, et les performances passées sont dédupliquées par cheval, date, hippodrome et course. Un cheval revu enrichit donc sa fiche existante.

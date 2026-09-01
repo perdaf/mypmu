@@ -50,6 +50,28 @@ button, .primaryButton { background: var(--gold); border: 0; color: #1d241f; cur
 .historyCallout small { color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .historyCallout strong { font-family: Georgia, serif; font-size: 21px; }
 .historyCallout > span:last-child { color: var(--gold); font-size: 12px; font-weight: 800; }
+.collectorPanel { background: var(--card); border: 1px solid var(--line); display: grid; gap: 18px; margin: 24px 0; padding: 22px 24px; }
+.collectorState { align-items: center; display: flex; gap: 13px; }
+.collectorState > div { display: grid; gap: 4px; }
+.collectorState small, .collectorFacts small { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.collectorState strong { font-family: Georgia, serif; font-size: 22px; }
+.collectorState span:last-child { color: var(--muted); font-size: 10px; }
+.collectorPulse { background: #8a918d; border-radius: 50%; flex: 0 0 13px; height: 13px; width: 13px; }
+.collector-waiting .collectorPulse, .collector-success .collectorPulse { background: #258557; box-shadow: 0 0 0 5px #dcecdf; }
+.collector-collecting .collectorPulse, .collector-starting .collectorPulse { animation: collectorPulse 1.4s infinite; background: var(--gold); box-shadow: 0 0 0 5px #efe8d5; }
+.collector-error { border-left: 5px solid #9e2f2f; }
+.collector-error .collectorPulse { background: #9e2f2f; box-shadow: 0 0 0 5px #f4dede; }
+.collectorFacts { border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, 1fr); }
+.collectorFacts > span { border-right: 1px solid var(--line); display: grid; gap: 6px; padding: 14px 16px; }
+.collectorFacts > span:first-child { padding-left: 0; }
+.collectorFacts > span:last-child { border-right: 0; }
+.collectorFacts strong { font-size: 12px; }
+.collectorWarning { background: #f4dede; color: #711f1f; font-size: 12px; line-height: 1.5; margin: 0; padding: 13px 15px; }
+.collectorActions { align-items: center; display: flex; gap: 14px; justify-content: flex-end; }
+.collectorActions span { color: var(--muted); font-size: 10px; }
+.collectorActions button { margin-left: auto; padding: 10px 14px; }
+.collectorActions button:disabled { cursor: not-allowed; opacity: .5; }
+@keyframes collectorPulse { 50% { opacity: .35; transform: scale(.8); } }
 
 .historyHeading { align-items: end; display: grid; gap: 60px; grid-template-columns: 1fr 360px; margin-bottom: 48px; }
 .historyHeading h1 { font-size: clamp(48px, 6vw, 76px); letter-spacing: -.045em; margin: 0; }
@@ -292,6 +314,11 @@ tbody tr:hover { background: #f7f4eb; }
   .principles { grid-template-columns: 1fr; }
   .principles article { border-bottom: 1px solid var(--line); border-right: 0; }
   .historyCallout { align-items: start; flex-direction: column; gap: 18px; }
+  .collectorFacts { grid-template-columns: 1fr; }
+  .collectorFacts > span { border-bottom: 1px solid var(--line); border-right: 0; padding-left: 0; }
+  .collectorFacts > span:last-child { border-bottom: 0; }
+  .collectorActions { align-items: stretch; flex-direction: column; }
+  .collectorActions button { margin-left: 0; }
   .historyHeading { grid-template-columns: 1fr; }
   .historyMetrics { grid-template-columns: repeat(2, 1fr); }
   .historyMetrics article:nth-child(2n) { border-right: 0; }

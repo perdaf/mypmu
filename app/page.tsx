@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DateForm } from "@/components/date-form";
+import { CollectorStatusPanel } from "@/components/collector-status-panel";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
         </div>
         <DateForm />
       </section>
+      <CollectorStatusPanel />
       <section className="principles" aria-label="Principes de l’analyse">
         <article><strong>01</strong><h2>Données vérifiées</h2><p>Les réponses PMU sont contrôlées avant affichage.</p></article>
         <article><strong>02</strong><h2>Lecture rapide</h2><p>Forme, expérience, entourage et cote réunis au même endroit.</p></article>

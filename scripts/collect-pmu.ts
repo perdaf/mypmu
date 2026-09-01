@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { type DetailedPerformances, type FinalReports, type Participant, type Programme } from "../lib/pmu";
 import { pmuProvider } from "../lib/providers";
 import { geocodeVenue, getRaceWeather, type RaceWeather, type VenueCoordinates } from "../lib/weather";
+import { classifyCollectorError, updateCollectorStatus } from "../lib/collector-status";
 
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
@@ -201,6 +202,7 @@ async function main() {
 let runId: number | bigint | undefined;
 try {
   const startedAt = now();
+  if (quinteOnly) updateCollectorStatus({ status: "collecting", lastAttemptAt: startedAt, errorKind: null, errorMessage: null, processId: process.pid });
   runId = database.prepare("INSERT INTO ingestion_runs (programme_date, started_at, status) VALUES (?, ?, 'running')").run(programmeDate, startedAt).lastInsertRowid;
   const programme = await pmuProvider.getProgramme(programmeDate);
   const currentTime = Date.now();
@@ -245,9 +247,17 @@ try {
     console.log(`Collecté R${reunion.numOfficiel} C${course.numOrdre} : ${participants.length} partants`);
   }
   database.prepare("UPDATE ingestion_runs SET finished_at=?, status='completed', races_collected=?, entries_collected=? WHERE id=?").run(now(), targets.length, entriesCollected, runId);
+  if (quinteOnly) updateCollectorStatus({
+    status: "success", lastSuccessAt: now(), racesCollected: targets.length,
+    entriesCollected, errorKind: null, errorMessage: null, processId: null,
+  });
   console.log(`Collecte terminée : ${targets.length} courses, ${entriesCollected} partants.`);
 } catch (error) {
   if (runId !== undefined) database.prepare("UPDATE ingestion_runs SET finished_at=?, status='failed', error_message=? WHERE id=?").run(now(), error instanceof Error ? error.message : String(error), runId);
+  if (quinteOnly) updateCollectorStatus({
+    status: "error", errorKind: classifyCollectorError(error),
+    errorMessage: error instanceof Error ? error.message : String(error), processId: null,
+  });
   throw error;
 } finally {
   database.close();

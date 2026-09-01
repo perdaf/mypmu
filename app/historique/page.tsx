@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getHistoryOverview, MINIMUM_BACKTEST_RACES } from "@/lib/history";
+import { CollectorStatusPanel } from "@/components/collector-status-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,7 @@ export default function HistoryPage() {
           <div><p className="eyebrow">Collecte multi-source</p><h2>État opérationnel</h2></div>
           <p>{history.collection.days.completed} terminée(s) · {history.collection.days.failed} en échec · {history.collection.days.pending} en attente</p>
         </div>
+        <CollectorStatusPanel />
         <div className="sourceGrid">
           {history.collection.sources.map((source) => (
             <article key={source.id} className={source.usable ? "sourceCard sourceReady" : "sourceCard sourceUnavailable"}>

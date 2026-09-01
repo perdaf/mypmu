@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "tsx scripts/dev-all.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
