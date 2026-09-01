@@ -1,6 +1,7 @@
 import { assertPmuDate } from "../lib/date";
 import { initializeDatabase } from "../lib/db";
-import { getFinalReports, getParticipants, getProgramme, type FinalReports, type Participant } from "../lib/pmu";
+import { createHash } from "node:crypto";
+import { getDetailedPerformances, getFinalReports, getParticipants, getProgramme, type DetailedPerformances, type FinalReports, type Participant } from "../lib/pmu";
 
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
@@ -42,11 +43,19 @@ function completeness(participant: Participant) {
   return { missing, ratio: (Object.keys(fields).length - missing.length) / Object.keys(fields).length };
 }
 
+function performanceId(horse: string, racedAt: number, hippodrome: string | null | undefined, raceName: string | null | undefined) {
+  return createHash("sha256")
+    .update([horse, racedAt, hippodrome ?? "", raceName ?? ""].join("|"))
+    .digest("hex")
+    .slice(0, 32);
+}
+
 function persistRace(
   reunion: Awaited<ReturnType<typeof getProgramme>>["reunions"][number],
   course: Awaited<ReturnType<typeof getProgramme>>["reunions"][number]["courses"][number],
   participants: Participant[],
   finalReports: FinalReports,
+  detailedPerformances: DetailedPerformances | null,
 ) {
   const collectedAt = now();
   const id = raceId(reunion.numOfficiel, course.numOrdre);
@@ -92,6 +101,51 @@ function persistRace(
       missingFields: JSON.stringify(quality.missing), rawJson: JSON.stringify(participant), collectedAt,
     });
     if (participant.dernierRapportDirect?.rapport) insertOdds.run(id, participant.numPmu, participant.dernierRapportDirect.rapport, "DIRECT", collectedAt);
+  }
+
+  if (detailedPerformances) {
+    const participantByNumber = new Map(participants.map((participant) => [participant.numPmu, participant]));
+    const upsertPerformance = database.prepare(`
+      INSERT INTO horse_performances (id, horse_id, raced_at, timezone_offset, hippodrome, race_name, discipline, allocation, distance, runners, winner_time, finish_position, finish_status, jockey_driver, jockey_weight, starting_gate, distance_behind, kilometer_reduction, distance_run, blinkers, field_json, raw_json, first_collected_at, last_collected_at)
+      VALUES (@id, @horseId, @racedAt, @timezoneOffset, @hippodrome, @raceName, @discipline, @allocation, @distance, @runners, @winnerTime, @finishPosition, @finishStatus, @jockeyDriver, @jockeyWeight, @startingGate, @distanceBehind, @kilometerReduction, @distanceRun, @blinkers, @fieldJson, @rawJson, @collectedAt, @collectedAt)
+      ON CONFLICT(id) DO UPDATE SET finish_position=excluded.finish_position, finish_status=excluded.finish_status, jockey_driver=excluded.jockey_driver, jockey_weight=excluded.jockey_weight, starting_gate=excluded.starting_gate, distance_behind=excluded.distance_behind, kilometer_reduction=excluded.kilometer_reduction, distance_run=excluded.distance_run, blinkers=excluded.blinkers, field_json=excluded.field_json, raw_json=excluded.raw_json, last_collected_at=excluded.last_collected_at
+    `);
+    const linkPerformance = database.prepare(`
+      INSERT INTO race_entry_performance_snapshots (target_race_id, pmu_number, performance_id, recency_rank, collected_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(target_race_id, pmu_number, performance_id) DO UPDATE SET recency_rank=excluded.recency_rank, collected_at=excluded.collected_at
+    `);
+
+    for (const history of detailedPerformances.participants) {
+      const currentParticipant = participantByNumber.get(history.numPmu);
+      if (!currentParticipant) continue;
+      const idHorse = horseId(currentParticipant);
+      const targetStart = course.heureDepart ?? Number.POSITIVE_INFINITY;
+      history.coursesCourues
+        .filter((pastRace) => pastRace.date < targetStart)
+        .sort((left, right) => right.date - left.date)
+        .slice(0, 10)
+        .forEach((pastRace, index) => {
+          const ownPerformance = pastRace.participants.find((item) => item.itsHim)
+            ?? pastRace.participants.find((item) => item.nomCheval === history.nomCheval);
+          const idPerformance = performanceId(idHorse, pastRace.date, pastRace.hippodrome, pastRace.nomPrix);
+          upsertPerformance.run({
+            id: idPerformance, horseId: idHorse, racedAt: pastRace.date,
+            timezoneOffset: pastRace.timezoneOffset ?? null, hippodrome: pastRace.hippodrome ?? null,
+            raceName: pastRace.nomPrix ?? null, discipline: pastRace.discipline ?? null,
+            allocation: pastRace.allocation ?? null, distance: pastRace.distance ?? null,
+            runners: pastRace.nbParticipants ?? pastRace.participants.length, winnerTime: pastRace.tempsDuPremier ?? null,
+            finishPosition: ownPerformance?.place?.place ?? null,
+            finishStatus: ownPerformance?.place?.statusArrivee ?? null,
+            jockeyDriver: ownPerformance?.nomJockey ?? null, jockeyWeight: ownPerformance?.poidsJockey ?? null,
+            startingGate: ownPerformance?.corde ?? null, distanceBehind: ownPerformance?.distanceAvecPrecedent ?? null,
+            kilometerReduction: ownPerformance?.reductionKilometrique ?? null,
+            distanceRun: ownPerformance?.distanceParcourue ?? null, blinkers: ownPerformance?.oeillere ?? null,
+            fieldJson: JSON.stringify(pastRace.participants), rawJson: JSON.stringify(pastRace), collectedAt,
+          });
+          linkPerformance.run(id, history.numPmu, idPerformance, index + 1, collectedAt);
+        });
+    }
   }
 
   const upsertBet = database.prepare(`
@@ -146,7 +200,11 @@ try {
           return [];
         })
       : [];
-    database.transaction(() => persistRace(reunion, course, participants, finalReports))();
+    const detailedPerformances = await getDetailedPerformances(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
+      console.warn(`Performances détaillées indisponibles R${reunion.numOfficiel} C${course.numOrdre}:`, error instanceof Error ? error.message : error);
+      return null;
+    });
+    database.transaction(() => persistRace(reunion, course, participants, finalReports, detailedPerformances))();
     entriesCollected += participants.length;
     console.log(`Collecté R${reunion.numOfficiel} C${course.numOrdre} : ${participants.length} partants`);
   }

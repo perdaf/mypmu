@@ -107,6 +107,46 @@ const finalReportsSchema = z.array(z.object({
   })).default([]),
 }));
 
+const pastRaceParticipantSchema = z.object({
+  numPmu: z.number().nullish(),
+  place: z.object({
+    place: z.number().nullish(),
+    rawValue: z.string().nullish(),
+    statusArrivee: z.string().nullish(),
+  }).nullish(),
+  nomCheval: z.string(),
+  nomJockey: z.string().nullish(),
+  poidsJockey: z.number().nullish(),
+  corde: z.number().nullish(),
+  distanceAvecPrecedent: z.number().nullish(),
+  itsHim: z.boolean().default(false),
+  reductionKilometrique: z.number().nullish(),
+  distanceParcourue: z.number().nullish(),
+  oeillere: z.string().nullish(),
+});
+
+const pastRaceSchema = z.object({
+  date: z.number(),
+  timezoneOffset: z.number().nullish(),
+  hippodrome: z.string().nullish(),
+  nomPrix: z.string().nullish(),
+  discipline: z.string().nullish(),
+  allocation: z.number().nullish(),
+  distance: z.number().nullish(),
+  nbParticipants: z.number().nullish(),
+  tempsDuPremier: z.number().nullish(),
+  participants: z.array(pastRaceParticipantSchema).default([]),
+});
+
+const detailedPerformancesSchema = z.object({
+  allure: z.string().nullish(),
+  participants: z.array(z.object({
+    numPmu: z.number(),
+    nomCheval: z.string(),
+    coursesCourues: z.array(pastRaceSchema).default([]),
+  })).default([]),
+});
+
 export type Programme = z.infer<typeof programmeSchema>["programme"];
 export type Reunion = z.infer<typeof reunionSchema>;
 export type Course = z.infer<typeof courseSchema>;
@@ -114,6 +154,7 @@ export type Participant = z.infer<typeof participantSchema>;
 export type AvailableBet = z.infer<typeof availableBetSchema>;
 export type DetailedPronostics = z.infer<typeof pronosticsSchema>;
 export type FinalReports = z.infer<typeof finalReportsSchema>;
+export type DetailedPerformances = z.infer<typeof detailedPerformancesSchema>;
 
 export class PmuApiError extends Error {
   constructor(message: string, readonly status?: number) {
@@ -122,12 +163,26 @@ export class PmuApiError extends Error {
   }
 }
 
+async function fetchWithRetry(url: string) {
+  const delays = [0, 500, 1_500];
+  let lastError: unknown;
+  for (const delay of delays) {
+    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+    try {
+      return await fetch(url, {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
 async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
-  const response = await fetch(`${API_ROOT}/${path}`, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 300 },
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await fetchWithRetry(`${API_ROOT}/${path}`);
 
   if (!response.ok) {
     throw new PmuApiError(`L’API PMU a répondu ${response.status}.`, response.status);
@@ -169,6 +224,17 @@ export async function getFinalReports(date: string, reunion: number, course: num
     `${assertPmuDate(date)}/R${reunion}/C${course}/rapports-definitifs`,
     finalReportsSchema,
   );
+}
+
+export async function getDetailedPerformances(date: string, reunion: number, course: number) {
+  return request(
+    `${assertPmuDate(date)}/R${reunion}/C${course}/performances-detaillees/pretty`,
+    detailedPerformancesSchema,
+  );
+}
+
+export function parseDetailedPerformances(input: unknown): DetailedPerformances {
+  return detailedPerformancesSchema.parse(input);
 }
 
 export function findCourse(programme: Programme, reunionNumber: number, courseNumber: number) {

@@ -35,7 +35,7 @@ export default function HistoryPage() {
         <article><small>Partants</small><strong>{history.entries}</strong><span>{history.horses} chevaux distincts</span></article>
         <article><small>Relevés de cotes</small><strong>{history.oddsSnapshots}</strong><span>instantanés conservés</span></article>
         <article><small>Complétude</small><strong>{history.averageCompletenessPercent} %</strong><span>données partants</span></article>
-        <article><small>Rapports</small><strong>{history.reports}</strong><span>rapports définitifs</span></article>
+        <article><small>Performances passées</small><strong>{history.pastPerformances}</strong><span>{history.entriesWithHistory} partants documentés</span></article>
       </section>
 
       <section className="dataNotice">

@@ -80,6 +80,8 @@ Les fichiers temporaires `data/*.sqlite-wal` et `data/*.sqlite-shm` restent igno
 
 Les champs absents sont enregistrés dans `race_entries.missing_fields` avec un indice `data_completeness`. Dans l’analyse, une donnée manquante reçoit une valeur neutre, jamais zéro : le cheval reste étudié, mais la confiance et, légèrement, le score sont réduits. Si plus de 40 % des partants ont une confiance faible, ou si la complétude moyenne descend sous 55 %, le moteur s’abstient déjà de proposer un ticket.
 
+Le collecteur récupère aussi jusqu’à dix performances détaillées antérieures pour chaque partant. Les événements sont normalisés dans `horse_performances` et reliés à la course cible par `race_entry_performance_snapshots`. Seules les performances dont la date précède strictement le départ sont conservées dans cet instantané, afin d’empêcher toute fuite de données futures pendant l’entraînement et les backtests.
+
 Le projet ne fournit pas de garantie de gain. Les futures probabilités devront être calculées à partir de données historiques et évaluées par backtest chronologique.
 
 ## Historique du prototype

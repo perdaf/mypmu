@@ -132,7 +132,51 @@ CREATE TABLE IF NOT EXISTS model_predictions (
   UNIQUE (race_id, pmu_number, model_version)
 );
 
+-- Une performance passée est normalisée une seule fois, même si elle apparaît
+-- dans l'historique de plusieurs courses cibles collectées à des dates différentes.
+CREATE TABLE IF NOT EXISTS horse_performances (
+  id TEXT PRIMARY KEY,
+  horse_id TEXT NOT NULL REFERENCES horses(id),
+  raced_at INTEGER NOT NULL,
+  timezone_offset INTEGER,
+  hippodrome TEXT,
+  race_name TEXT,
+  discipline TEXT,
+  allocation INTEGER,
+  distance INTEGER,
+  runners INTEGER,
+  winner_time INTEGER,
+  finish_position INTEGER,
+  finish_status TEXT,
+  jockey_driver TEXT,
+  jockey_weight INTEGER,
+  starting_gate INTEGER,
+  distance_behind INTEGER,
+  kilometer_reduction INTEGER,
+  distance_run INTEGER,
+  blinkers TEXT,
+  field_json TEXT NOT NULL,
+  raw_json TEXT NOT NULL,
+  first_collected_at TEXT NOT NULL,
+  last_collected_at TEXT NOT NULL,
+  UNIQUE (horse_id, raced_at, hippodrome, race_name)
+);
+
+-- Ce lien fige les performances qui étaient connues pour un partant avant la
+-- course cible. Le recency_rank 1 désigne sa sortie la plus récente.
+CREATE TABLE IF NOT EXISTS race_entry_performance_snapshots (
+  target_race_id TEXT NOT NULL,
+  pmu_number INTEGER NOT NULL,
+  performance_id TEXT NOT NULL REFERENCES horse_performances(id),
+  recency_rank INTEGER NOT NULL,
+  collected_at TEXT NOT NULL,
+  PRIMARY KEY (target_race_id, pmu_number, performance_id),
+  FOREIGN KEY (target_race_id, pmu_number) REFERENCES race_entries(race_id, pmu_number) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_races_date ON races(programme_date);
 CREATE INDEX IF NOT EXISTS idx_entries_horse ON race_entries(horse_id);
 CREATE INDEX IF NOT EXISTS idx_odds_race_time ON odds_snapshots(race_id, observed_at);
 CREATE INDEX IF NOT EXISTS idx_results_race ON race_results(race_id);
+CREATE INDEX IF NOT EXISTS idx_performances_horse_date ON horse_performances(horse_id, raced_at DESC);
+CREATE INDEX IF NOT EXISTS idx_performance_snapshots_target ON race_entry_performance_snapshots(target_race_id, pmu_number, recency_rank);

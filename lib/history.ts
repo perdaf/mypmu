@@ -23,6 +23,8 @@ export type HistoryOverview = {
   horses: number;
   oddsSnapshots: number;
   reports: number;
+  pastPerformances: number;
+  entriesWithHistory: number;
   averageCompletenessPercent: number;
   usableForBacktest: number;
   programmeDates: number;
@@ -38,6 +40,8 @@ type TotalsRow = {
   horses: number;
   oddsSnapshots: number;
   reports: number;
+  pastPerformances: number;
+  entriesWithHistory: number;
   averageCompleteness: number | null;
   usableForBacktest: number;
   programmeDates: number;
@@ -56,6 +60,11 @@ export function getHistoryOverview(): HistoryOverview {
         (SELECT COUNT(*) FROM horses) AS horses,
         (SELECT COUNT(*) FROM odds_snapshots) AS oddsSnapshots,
         (SELECT COUNT(*) FROM bet_reports) AS reports,
+        (SELECT COUNT(*) FROM horse_performances) AS pastPerformances,
+        (SELECT COUNT(*) FROM race_entries e WHERE EXISTS (
+          SELECT 1 FROM race_entry_performance_snapshots s
+          WHERE s.target_race_id = e.race_id AND s.pmu_number = e.pmu_number
+        )) AS entriesWithHistory,
         (SELECT AVG(data_completeness) FROM race_entries) AS averageCompleteness,
         (
           SELECT COUNT(*) FROM races r
