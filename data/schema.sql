@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS races (
   raw_json TEXT NOT NULL,
   first_collected_at TEXT NOT NULL,
   last_collected_at TEXT NOT NULL,
+  is_quinte_plus INTEGER NOT NULL DEFAULT 0,
   UNIQUE (programme_date, reunion_number, course_number)
 );
 

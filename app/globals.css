@@ -108,10 +108,13 @@ button, .primaryButton { background: var(--gold); border: 0; color: #1d241f; cur
 .courseRow { align-items: center; border-bottom: 1px solid var(--line); display: grid; gap: 20px; grid-template-columns: 46px 1fr auto 30px; padding: 18px 24px; transition: background .15s; }
 .courseRow:last-child { border-bottom: 0; }
 .courseRow:hover { background: var(--green-light); }
+.quinteCourseRow { border-left: 5px solid var(--gold); }
+.quinteCourseRow .courseName strong { color: var(--green); }
 .courseNumber { color: var(--green); font-weight: 800; }
 .courseName { display: grid; gap: 5px; }
 .courseName small, td small { color: var(--muted); display: block; font-size: 12px; }
 .betTag { background: #efe1bd; font-size: 10px; font-weight: 800; padding: 7px 9px; text-transform: uppercase; }
+.quinteTag { background: var(--gold); color: var(--ink); font-size: 11px; font-weight: 900; letter-spacing: .05em; padding: 8px 10px; text-transform: uppercase; }
 .courseStatuses { align-items: flex-end; display: flex; flex-direction: column; gap: 6px; }
 .closedTag { background: #9e2f2f; color: white; font-size: 10px; font-weight: 900; letter-spacing: .06em; padding: 7px 9px; text-transform: uppercase; }
 .arrow { font-size: 22px; }

@@ -7,6 +7,7 @@ import { geocodeVenue, getRaceWeather, type RaceWeather, type VenueCoordinates }
 
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
+const quinteOnly = cliArguments.includes("--quinte");
 const [dateArgument, reunionArgument, courseArgument] = cliArguments.filter((argument) => !argument.startsWith("--"));
 if (!dateArgument) {
   console.error("Usage : npm run collect -- JJMMAAAA [réunion] [course]");
@@ -62,11 +63,13 @@ function persistRace(
 ) {
   const collectedAt = now();
   const id = raceId(reunion.numOfficiel, course.numOrdre);
+  const isQuintePlus = reunion.parisEvenement.some((bet) => bet.course.numOrdre === course.numOrdre && bet.codePari === "QUINTE_PLUS")
+    || course.paris.some((bet) => bet.typePari === "QUINTE_PLUS");
 
   database.prepare(`
-    INSERT INTO races (id, programme_date, reunion_number, course_number, label, hippodrome, discipline, specialite, distance, corde, scheduled_at, status, declared_runners, results_available, raw_json, first_collected_at, last_collected_at)
-    VALUES (@id, @programmeDate, @reunion, @course, @label, @hippodrome, @discipline, @specialite, @distance, @corde, @scheduledAt, @status, @declaredRunners, @resultsAvailable, @rawJson, @collectedAt, @collectedAt)
-    ON CONFLICT(id) DO UPDATE SET label=excluded.label, hippodrome=excluded.hippodrome, discipline=excluded.discipline, specialite=excluded.specialite, distance=excluded.distance, corde=excluded.corde, scheduled_at=excluded.scheduled_at, status=excluded.status, declared_runners=excluded.declared_runners, results_available=excluded.results_available, raw_json=excluded.raw_json, last_collected_at=excluded.last_collected_at
+    INSERT INTO races (id, programme_date, reunion_number, course_number, label, hippodrome, discipline, specialite, distance, corde, scheduled_at, status, declared_runners, results_available, raw_json, first_collected_at, last_collected_at, is_quinte_plus)
+    VALUES (@id, @programmeDate, @reunion, @course, @label, @hippodrome, @discipline, @specialite, @distance, @corde, @scheduledAt, @status, @declaredRunners, @resultsAvailable, @rawJson, @collectedAt, @collectedAt, @isQuintePlus)
+    ON CONFLICT(id) DO UPDATE SET label=excluded.label, hippodrome=excluded.hippodrome, discipline=excluded.discipline, specialite=excluded.specialite, distance=excluded.distance, corde=excluded.corde, scheduled_at=excluded.scheduled_at, status=excluded.status, declared_runners=excluded.declared_runners, results_available=excluded.results_available, raw_json=excluded.raw_json, last_collected_at=excluded.last_collected_at, is_quinte_plus=excluded.is_quinte_plus
   `).run({
     id, programmeDate, reunion: reunion.numOfficiel, course: course.numOrdre, label: course.libelle,
     hippodrome: reunion.hippodrome?.libelleLong ?? reunion.hippodrome?.libelleCourt ?? null,
@@ -74,7 +77,7 @@ function persistRace(
     corde: course.corde ?? null, scheduledAt: course.heureDepart ?? null, status: course.statut ?? null,
     declaredRunners: course.nombreDeclaresPartants ?? participants.length,
     resultsAvailable: course.rapportsDefinitifsDisponibles ? 1 : 0,
-    rawJson: JSON.stringify(course), collectedAt,
+    rawJson: JSON.stringify(course), collectedAt, isQuintePlus: isQuintePlus ? 1 : 0,
   });
 
   const upsertHorse = database.prepare(`
@@ -205,6 +208,7 @@ try {
   const targets = programme.reunions.flatMap((reunion) => reunion.courses
     .filter(() => reunionFilter === undefined || reunion.numOfficiel === reunionFilter)
     .filter((course) => courseFilter === undefined || course.numOrdre === courseFilter)
+    .filter((course) => !quinteOnly || reunion.parisEvenement.some((bet) => bet.course.numOrdre === course.numOrdre && bet.codePari === "QUINTE_PLUS") || course.paris.some((bet) => bet.typePari === "QUINTE_PLUS"))
     .filter((course) => !activeOnly || course.heureDepart === undefined || Math.abs(course.heureDepart - currentTime) <= activeWindowMs)
     .map((course) => ({ reunion, course })));
 

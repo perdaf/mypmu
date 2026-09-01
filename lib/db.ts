@@ -24,6 +24,7 @@ export function initializeDatabase(database = openDatabase()) {
   };
   ensureColumn("ingestion_runs", "source", "TEXT NOT NULL DEFAULT 'PMU'");
   ensureColumn("historical_collection_days", "source", "TEXT NOT NULL DEFAULT 'PMU'");
+  ensureColumn("races", "is_quinte_plus", "INTEGER NOT NULL DEFAULT 0");
   const reportColumns = database.prepare("PRAGMA table_info(bet_reports)").all() as Array<{ name: string }>;
   if (reportColumns.length > 0 && !reportColumns.some((column) => column.name === "report_label")) {
     database.exec(`

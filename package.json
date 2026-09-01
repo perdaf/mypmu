@@ -14,7 +14,9 @@
     "collect:today": "tsx scripts/collect-today.ts",
     "collect:watch": "tsx scripts/watch-collector.ts",
     "collect:weather": "tsx scripts/collect-weather.ts",
-    "collect:history": "tsx scripts/collect-history.ts"
+    "collect:history": "tsx scripts/collect-history.ts",
+    "collect:quinte": "tsx scripts/collect-quinte.ts",
+    "collect:quinte:watch": "tsx scripts/watch-quinte.ts"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

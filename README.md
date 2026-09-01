@@ -60,6 +60,20 @@ npm run collect:watch
 npm run collect:weather -- JJMMAAAA
 ```
 
+Mode prioritaire Quinté+ :
+
+```bash
+# Une collecte de la course support du jour
+npm run collect:quinte
+
+# Collecte initiale puis relevés toutes les 5 minutes à ±45 min du départ
+npm run collect:quinte:watch
+```
+
+Le support est identifié par le marqueur officiel `QUINTE_PLUS` du programme PMU. Les autres courses restent utiles à l’historique général, mais ce mode limite les relevés fréquents à la course correspondant à votre usage. L’intervalle se règle avec `MYPMU_QUINTE_INTERVAL_MS`, avec un minimum d’une minute.
+
+Les chevaux ne sont pas recréés à chaque apparition : `horses.id` est réutilisé, les engagements sont uniques par course/numéro, et les performances passées sont dédupliquées par cheval, date, hippodrome et course. Un cheval revu enrichit donc sa fiche existante.
+
 Rattrapage historique, avec reprise automatique par journée :
 
 ```bash

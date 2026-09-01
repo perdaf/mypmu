@@ -38,6 +38,8 @@ export default function HistoryPage() {
         <article><small>Performances passées</small><strong>{history.pastPerformances}</strong><span>{history.entriesWithHistory} partants documentés</span></article>
         <article><small>Météo horaire</small><strong>{history.weatherSnapshots}</strong><span>courses contextualisées</span></article>
         <article><small>Rapports</small><strong>{history.reports}</strong><span>rapports définitifs</span></article>
+        <article><small>Courses Quinté+</small><strong>{history.quinteRaces}</strong><span>supports identifiés</span></article>
+        <article><small>Chevaux récurrents</small><strong>{history.returningHorses}</strong><span>vus dans plusieurs courses</span></article>
       </section>
 
       <section className="dataNotice">

@@ -37,16 +37,18 @@ export default async function ReunionsPage({ params }: PageProps) {
                   .filter((bet) => bet.course.numOrdre === course.numOrdre)
                   .map((bet) => bet.codePari.replaceAll("_", " "));
                 const bettingOpen = course.paris.some((bet) => bet.enVente);
+                const isQuintePlus = reunion.parisEvenement.some((bet) => bet.course.numOrdre === course.numOrdre && bet.codePari === "QUINTE_PLUS")
+                  || course.paris.some((bet) => bet.typePari === "QUINTE_PLUS");
                 return (
                   <Link
-                    className="courseRow"
+                    className={isQuintePlus ? "courseRow quinteCourseRow" : "courseRow"}
                     href={`/course/${date}/${reunion.numOfficiel}/${course.numOrdre}`}
                     key={course.numOrdre}
                   >
                     <span className="courseNumber">C{course.numOrdre}</span>
                     <span className="courseName"><strong>{course.libelle}</strong><small>{course.discipline ?? course.specialite} · {course.distance ? `${course.distance} m` : "distance inconnue"}</small></span>
                     <span className="courseStatuses">
-                      {eventBets.length > 0 && <span className="betTag">{eventBets[0]}</span>}
+                      {isQuintePlus ? <span className="quinteTag">Quinté+</span> : eventBets.length > 0 && <span className="betTag">{eventBets[0]}</span>}
                       {!bettingOpen && <span className="closedTag">Paris fermés</span>}
                     </span>
                     <span aria-hidden="true" className="arrow">→</span>

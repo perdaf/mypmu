@@ -29,6 +29,8 @@ export default async function CoursePage({ params }: PageProps) {
 
   const activeParticipants = participants.filter((participant) => participant.statut !== "NON_PARTANT");
   const meeting = programme.reunions.find((item) => item.numOfficiel === reunion);
+  const isQuintePlus = meeting?.parisEvenement.some((bet) => bet.course.numOrdre === courseNumber && bet.codePari === "QUINTE_PLUS")
+    || course.paris.some((bet) => bet.typePari === "QUINTE_PLUS");
   const raceContext = {
     scheduledAt: course.heureDepart,
     discipline: course.discipline ?? course.specialite,
@@ -43,7 +45,7 @@ export default async function CoursePage({ params }: PageProps) {
     <main>
       <Link href={`/reunions/${date}`} className="backLink">← Retour au programme</Link>
       <section className="courseHero">
-        <p className="eyebrow">R{reunion} · C{courseNumber}</p>
+        <p className="eyebrow">R{reunion} · C{courseNumber}{isQuintePlus ? " · Course support Quinté+" : ""}</p>
         <h1>{course.libelle}</h1>
         <div className="facts">
           <span><small>Discipline</small>{course.discipline ?? course.specialite ?? "—"}</span>
