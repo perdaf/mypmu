@@ -45,4 +45,19 @@ describe("performances détaillées PMU", () => {
       participants: [{ numPmu: 1, nomCheval: "INCOMPLET", coursesCourues: [{ participants: [] }] }],
     })).toThrow();
   });
+
+  it("accepte une distance avec le précédent décrite en longueurs", () => {
+    const parsed = parseDetailedPerformances({
+      participants: [{
+        numPmu: 1, nomCheval: "GALOP TEST", coursesCourues: [{
+          date: 1_782_597_600_000, participants: [{
+            numPmu: 3, place: { place: 2, rawValue: "DP", statusArrivee: "PLACE" },
+            nomCheval: "GALOP TEST", itsHim: true,
+            distanceAvecPrecedent: { knownValue: "UNE_LONGUEUR_ET_QUART", rawValue: "1 L 1/4" },
+          }],
+        }],
+      }],
+    });
+    expect(parsed.participants[0].coursesCourues[0].participants[0].distanceAvecPrecedent).toEqual({ knownValue: "UNE_LONGUEUR_ET_QUART", rawValue: "1 L 1/4" });
+  });
 });

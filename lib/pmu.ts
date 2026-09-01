@@ -129,7 +129,10 @@ const pastRaceParticipantSchema = z.object({
   nomJockey: z.string().nullish(),
   poidsJockey: z.number().nullish(),
   corde: z.number().nullish(),
-  distanceAvecPrecedent: z.number().nullish(),
+  distanceAvecPrecedent: z.union([
+    z.number(),
+    z.object({ knownValue: z.string().nullish(), rawValue: z.string().nullish() }),
+  ]).nullish(),
   itsHim: z.boolean().default(false),
   reductionKilometrique: z.number().nullish(),
   distanceParcourue: z.number().nullish(),
@@ -207,7 +210,10 @@ async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
       }
       const parsed = schema.safeParse(await response.json());
       if (parsed.success) return parsed.data;
-      console.error("Réponse PMU invalide", parsed.error.flatten());
+      console.error("Réponse PMU invalide", {
+        issues: parsed.error.issues.slice(0, 5).map((issue) => ({ path: issue.path.join("."), message: issue.message })),
+        totalIssues: parsed.error.issues.length,
+      });
       lastError = new PmuApiError("Le format des données PMU a changé.");
     } catch (error) {
       lastError = error;
