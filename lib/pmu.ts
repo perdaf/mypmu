@@ -12,6 +12,8 @@ function apiRoots() {
   return configured?.length ? configured : DEFAULT_API_ROOTS;
 }
 
+let lastRequestAt = 0;
+
 const betSchema = z.object({
   codePari: z.string(),
   course: z.object({
@@ -178,6 +180,10 @@ async function fetchWithRetry(url: string) {
   for (const delay of delays) {
     if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
     try {
+      const requestDelay = Math.max(0, Math.min(10_000, Number(process.env.MYPMU_REQUEST_DELAY_MS ?? 0)));
+      const elapsed = Date.now() - lastRequestAt;
+      if (requestDelay > elapsed) await new Promise((resolve) => setTimeout(resolve, requestDelay - elapsed));
+      lastRequestAt = Date.now();
       return await fetch(url, {
         headers: { Accept: "application/json" },
         next: { revalidate: 300 },

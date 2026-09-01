@@ -60,6 +60,20 @@ npm run collect:watch
 npm run collect:weather -- JJMMAAAA
 ```
 
+Rattrapage historique, avec reprise automatique par journée :
+
+```bash
+npm run collect:history -- 01012026 31082026
+
+# Vérifier le plan sans appeler les sources
+npm run collect:history -- 01012026 31012026 --dry-run
+
+# Refaire aussi les journées déjà terminées
+npm run collect:history -- 01012026 31012026 --force
+```
+
+Le rattrapage effectue deux tentatives par journée, attend deux secondes entre les journées et impose au collecteur PMU un délai minimal de 500 ms entre requêtes. Les options `--attempts=`, `--delay-ms=` et la variable `MYPMU_REQUEST_DELAY_MS` permettent d’ajuster ces limites. Un `Ctrl+C` marque la journée courante comme `pending`; la prochaine exécution la reprendra. La plage est volontairement limitée à 366 jours par lancement.
+
 L’intervalle peut être réglé avec `MYPMU_COLLECTION_INTERVAL_MS`, sans descendre sous une minute. Une exécution complète quotidienne prépare le programme ; la surveillance conserve ensuite les mouvements de cote proches du départ et récupère les résultats/rapports lorsqu’ils deviennent disponibles.
 
 La base `data/mypmu.sqlite` est versionnée afin de partager le même historique entre les postes de développement. Son schéma se trouve dans `data/schema.sql`. La collecte est relançable : courses, chevaux et partants sont mis à jour sans doublon, tandis que chaque nouvelle cote est conservée comme un instantané daté.

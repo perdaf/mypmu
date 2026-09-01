@@ -12,6 +12,19 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
   error_message TEXT
 );
 
+CREATE TABLE IF NOT EXISTS historical_collection_days (
+  programme_date TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'completed', 'failed')),
+  attempts INTEGER NOT NULL DEFAULT 0,
+  races_collected INTEGER NOT NULL DEFAULT 0,
+  entries_collected INTEGER NOT NULL DEFAULT 0,
+  started_at TEXT,
+  finished_at TEXT,
+  duration_ms INTEGER,
+  error_message TEXT,
+  updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS races (
   id TEXT PRIMARY KEY,
   programme_date TEXT NOT NULL,
