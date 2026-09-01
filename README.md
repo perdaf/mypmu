@@ -85,6 +85,8 @@ Les champs absents sont enregistrés dans `race_entries.missing_fields` avec un 
 
 Le collecteur récupère aussi jusqu’à dix performances détaillées antérieures pour chaque partant. Les événements sont normalisés dans `horse_performances` et reliés à la course cible par `race_entry_performance_snapshots`. Seules les performances dont la date précède strictement le départ sont conservées dans cet instantané, afin d’empêcher toute fuite de données futures pendant l’entraînement et les backtests.
 
+La fiche course transforme cet historique en indicateurs de forme, régularité, aptitude à la discipline, à la distance et à l’hippodrome, risque de disqualification, récupération et tendance. Une influence limitée de 15 % est appliquée au classement uniquement à partir de trois sorties antérieures. Si l’API détaillée ne répond pas, l’application reprend automatiquement l’instantané SQLite de la course.
+
 La météo horaire est fournie par Open-Meteo après géocodage précis et mis en cache via OpenStreetMap Nominatim, puis stockée dans `race_weather` avec sa source. Elle décrit les conditions atmosphériques proches du départ, mais ne remplace jamais l’état officiel du terrain ou de la piste. L’accès PMU essaie successivement les passerelles `online` et `offline`; la liste peut être remplacée avec `MYPMU_PMU_API_ROOTS` (URLs séparées par des virgules).
 
 Le projet ne fournit pas de garantie de gain. Les futures probabilités devront être calculées à partir de données historiques et évaluées par backtest chronologique.

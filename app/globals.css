@@ -126,6 +126,9 @@ button, .primaryButton { background: var(--gold); border: 0; color: #1d241f; cur
 .analysisHorse > div small { color: var(--green); display: block; font-size: 10px; font-weight: 800; margin-top: 4px; text-transform: uppercase; }
 .analysisHorse p { color: var(--muted); font-size: 11px; line-height: 1.4; margin: 7px 0 0; }
 .analysisHorse .missingData { color: #9e2f2f; font-size: 9px; font-weight: 700; }
+.historyDetails { margin-top: 8px; }
+.historyDetails summary { color: var(--green); cursor: pointer; font-size: 10px; font-weight: 800; }
+.historyDetails p { background: #edf2ed; color: #405047; margin: 7px 0 0; padding: 8px; }
 .analysisScore { color: var(--green); font-size: 24px; font-weight: 800; text-align: right; }
 .analysisScore small { display: block; font-size: 9px; }
 .raceCommentary { background: #eae6db; color: var(--muted); font-size: 13px; line-height: 1.6; padding: 16px 20px; }

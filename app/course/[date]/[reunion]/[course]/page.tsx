@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { findCourse, getParticipants, getProgramme, getPronostics } from "@/lib/pmu";
+import { findCourse, getDetailedPerformances, getParticipants, getProgramme, getPronostics } from "@/lib/pmu";
 import { BetSimulator } from "@/components/bet-simulator";
 import { analyseRace } from "@/lib/analysis";
+import { buildHistoricalIndicators, loadStoredHistoricalIndicators } from "@/lib/historical-indicators";
 
 type PageProps = { params: Promise<{ date: string; reunion: string; course: string }> };
 
@@ -17,16 +18,26 @@ export default async function CoursePage({ params }: PageProps) {
   const courseNumber = Number(courseParam);
   if (!Number.isInteger(reunion) || reunion < 1 || !Number.isInteger(courseNumber) || courseNumber < 1) notFound();
 
-  const [programme, participants, pronostics] = await Promise.all([
+  const [programme, participants, pronostics, detailedPerformances] = await Promise.all([
     getProgramme(date),
     getParticipants(date, reunion, courseNumber),
     getPronostics(date, reunion, courseNumber).catch(() => null),
+    getDetailedPerformances(date, reunion, courseNumber).catch(() => null),
   ]);
   const course = findCourse(programme, reunion, courseNumber);
   if (!course) notFound();
 
   const activeParticipants = participants.filter((participant) => participant.statut !== "NON_PARTANT");
-  const recommendation = analyseRace(activeParticipants, pronostics, course.paris);
+  const meeting = programme.reunions.find((item) => item.numOfficiel === reunion);
+  const raceContext = {
+    scheduledAt: course.heureDepart,
+    discipline: course.discipline ?? course.specialite,
+    distance: course.distance,
+    hippodrome: meeting?.hippodrome?.libelleLong ?? meeting?.hippodrome?.libelleCourt,
+  };
+  const liveHistory = buildHistoricalIndicators(detailedPerformances, raceContext);
+  const history = liveHistory.size > 0 ? liveHistory : loadStoredHistoricalIndicators(`${date}-R${reunion}-C${courseNumber}`, raceContext);
+  const recommendation = analyseRace(activeParticipants, pronostics, course.paris, history);
 
   return (
     <main>

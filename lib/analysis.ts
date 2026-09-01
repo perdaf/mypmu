@@ -1,5 +1,6 @@
 import { calculateTicket } from "./bets";
 import type { AvailableBet, DetailedPronostics, Participant } from "./pmu";
+import type { HistoricalIndicators } from "./historical-indicators";
 
 export type HorseAnalysis = {
   numPmu: number;
@@ -10,6 +11,7 @@ export type HorseAnalysis = {
   reasons: string[];
   confidence: "Élevée" | "Moyenne" | "Faible";
   missingData: string[];
+  historical?: HistoricalIndicators;
 };
 
 export type TicketProposal = {
@@ -93,7 +95,7 @@ function makeTicket(
   }
 }
 
-export function analyseRace(participants: Participant[], pronostics: DetailedPronostics | null, bets: AvailableBet[]): RaceRecommendation {
+export function analyseRace(participants: Participant[], pronostics: DetailedPronostics | null, bets: AvailableBet[], history = new Map<number, HistoricalIndicators>()): RaceRecommendation {
   const active = participants.filter((participant) => participant.statut !== "NON_PARTANT");
   const press = pronostics ? pressScores(pronostics) : new Map<number, number>();
   const synthesis = pronostics ? synthesisScores(pronostics) : new Map<number, number>();
@@ -129,7 +131,10 @@ export function analyseRace(participants: Participant[], pronostics: DetailedPro
     const trainerBonus = horse.avisEntraineur === "POSITIF" ? 0.03 : 0;
     const knownRatio = (4 - (missingByHorse.get(horse.numPmu)?.length ?? 0)) / 4;
     const rawScore = 100 * (value.market * 0.27 + value.press * 0.28 + value.form * 0.2 + value.career * 0.12 + value.synthesis * 0.13 + trainerBonus);
-    const score = rawScore * (0.85 + 0.15 * Math.max(0, knownRatio));
+    const qualityAdjustedScore = rawScore * (0.85 + 0.15 * Math.max(0, knownRatio));
+    const historical = history.get(horse.numPmu);
+    const historicalWeight = historical && historical.races >= 3 ? 0.15 : 0;
+    const score = qualityAdjustedScore * (1 - historicalWeight) + (historical?.compositeScore ?? 0) * historicalWeight;
     return { horse, score, value };
   }).sort((a, b) => b.score - a.score);
 
@@ -147,12 +152,17 @@ export function analyseRace(participants: Participant[], pronostics: DetailedPro
     if (value.career >= 0.65) reasons.push("bilan carrière solide");
     if (value.market <= 0.45 && value.press >= 0.35) reasons.push("cote plus haute que son soutien presse");
     if (horse.avisEntraineur === "POSITIF") reasons.push("avis entraîneur positif");
+    const historical = history.get(horse.numPmu);
+    if (historical?.discipline.races && historical.discipline.score >= 65) reasons.push(`apte à la discipline (${historical.discipline.races} sorties)`);
+    if (historical?.distance.races && historical.distance.score >= 65) reasons.push(`performant sur distance proche (${historical.distance.races} sorties)`);
+    if (historical?.trend === "En progression") reasons.push("dynamique récente en progression");
     return {
       numPmu: horse.numPmu, nom: horse.nom, score: Math.min(100, Math.round(score)), cote: horse.dernierRapportDirect?.rapport,
       profile: index < 2 ? "Base" : isOutsider ? "Outsider de valeur" : index < 6 ? "Chance régulière" : "Second choix",
       reasons: reasons.length > 0 ? reasons.slice(0, 2) : ["profil complémentaire dans cette course"],
       confidence: confidenceRatio >= 0.75 ? "Élevée" : confidenceRatio >= 0.5 ? "Moyenne" : "Faible",
       missingData,
+      historical,
     };
   });
 

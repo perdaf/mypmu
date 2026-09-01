@@ -186,7 +186,7 @@ export function BetSimulator({ bets, participants, reunion, course, recommendati
   return (
     <section className="betSection">
       <div className="sectionHeading"><div><p className="eyebrow">Analyse de la course</p><h2>Proposition automatique</h2></div><p>Score expérimental · R{reunion} C{course}</p></div>
-      <div className="analysisNotice"><strong>Le moteur combine consensus presse, cote, musique, carrière et avis entraîneur.</strong> Ce score est explicable mais pas encore calibré par backtest : il classe des profils, il ne garantit pas un gain.</div>
+      <div className="analysisNotice"><strong>Le moteur combine consensus presse, cote, carrière et performances passées comparables.</strong> Distance, discipline, hippodrome, régularité et disqualifications ne pèsent dans le score que lorsque l’historique est suffisant. Ce classement ne garantit pas un gain.</div>
       <div className={recommendation.dataQuality.recommendationAllowed ? "qualityIndicator qualityGood" : "qualityIndicator qualityInsufficient"}>
         <strong>Qualité des données : {recommendation.dataQuality.completenessPercent} %</strong>
         <span>{recommendation.dataQuality.recommendationAllowed ? `${recommendation.dataQuality.lowConfidenceHorses} partant(s) à faible confiance — recommandation autorisée` : recommendation.dataQuality.warning}</span>
@@ -196,7 +196,7 @@ export function BetSimulator({ bets, participants, reunion, course, recommendati
           <article className={horse.profile === "Outsider de valeur" ? "analysisHorse outsider" : "analysisHorse"} key={horse.numPmu}>
             <span className="analysisRank">{index + 1}</span>
             <span className="analysisNumber">{horse.numPmu}</span>
-            <div><strong>{horse.nom}</strong><small>{horse.profile} · cote {horse.cote ?? "—"} · confiance {horse.confidence}</small><p>{horse.reasons.join(" · ")}</p>{horse.missingData.length > 0 && <p className="missingData">Données manquantes : {horse.missingData.join(", ")}</p>}</div>
+            <div><strong>{horse.nom}</strong><small>{horse.profile} · cote {horse.cote ?? "—"} · confiance {horse.confidence}</small><p>{horse.reasons.join(" · ")}</p>{horse.historical && <details className="historyDetails"><summary>Historique : {horse.historical.races} sorties · forme {horse.historical.formScore}/100</summary><p>Discipline {horse.historical.discipline.score}/100 ({horse.historical.discipline.races}) · distance {horse.historical.distance.score}/100 ({horse.historical.distance.races}) · hippodrome {horse.historical.hippodrome.score}/100 ({horse.historical.hippodrome.races}) · régularité {horse.historical.regularityScore}% · disqualifications {horse.historical.disqualificationPercent}% · récupération {horse.historical.recoveryDays ?? "—"} j · {horse.historical.trend.toLowerCase()}</p></details>}{horse.missingData.length > 0 && <p className="missingData">Données manquantes : {horse.missingData.join(", ")}</p>}</div>
             <span className="analysisScore">{horse.score}<small>/100</small></span>
           </article>
         ))}
