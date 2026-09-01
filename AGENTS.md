@@ -2,6 +2,8 @@
 
 Ces règles s'appliquent à tout le dépôt MyPMU, quel que soit le poste de développement utilisé.
 
+Avant toute évolution, lire `docs/CODEX_HANDOFF.md`. Ce document décrit l'état courant de l'application, les choix déjà validés et la prochaine étape de développement. Le mettre à jour après toute évolution importante.
+
 ## Base SQLite partagée
 
 - `data/mypmu.sqlite` est volontairement versionnée dans Git. Elle contient l'historique utilisé pour les analyses et, à terme, l'entraînement des modèles.
