@@ -10,6 +10,7 @@ import { trainAndPromoteModel } from "../lib/model-training";
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
 const quinteOnly = cliArguments.includes("--quinte");
+const refreshOnly = cliArguments.includes("--refresh");
 const [dateArgument, reunionArgument, courseArgument] = cliArguments.filter((argument) => !argument.startsWith("--"));
 if (!dateArgument) {
   console.error("Usage : npm run collect -- JJMMAAAA [réunion] [course]");
@@ -213,10 +214,12 @@ try {
     .filter((course) => courseFilter === undefined || course.numOrdre === courseFilter)
     .filter((course) => !quinteOnly || reunion.parisEvenement.some((bet) => bet.course.numOrdre === course.numOrdre && bet.codePari === "QUINTE_PLUS") || course.paris.some((bet) => bet.typePari === "QUINTE_PLUS"))
     .filter((course) => !activeOnly || course.heureDepart === undefined || Math.abs(course.heureDepart - currentTime) <= activeWindowMs)
+    .filter((course) => !refreshOnly || !(database.prepare("SELECT results_available FROM races WHERE id = ?").get(raceId(reunion.numOfficiel, course.numOrdre)) as { results_available: number } | undefined)?.results_available)
     .map((course) => ({ reunion, course })));
 
   let entriesCollected = 0;
   for (const { reunion, course } of targets) {
+    const id = raceId(reunion.numOfficiel, course.numOrdre);
     const participants = await pmuProvider.getParticipants(programmeDate, reunion.numOfficiel, course.numOrdre);
     const finalReports = course.rapportsDefinitifsDisponibles
       ? await pmuProvider.getFinalReports(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
@@ -224,13 +227,15 @@ try {
           return [];
         })
       : [];
-    const detailedPerformances = await pmuProvider.getDetailedPerformances(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
+    const hasStoredPerformances = refreshOnly && Boolean(database.prepare("SELECT 1 FROM race_entry_performance_snapshots WHERE target_race_id = ? LIMIT 1").get(id));
+    const detailedPerformances = hasStoredPerformances ? null : await pmuProvider.getDetailedPerformances(programmeDate, reunion.numOfficiel, course.numOrdre).catch((error) => {
       console.warn(`Performances détaillées indisponibles R${reunion.numOfficiel} C${course.numOrdre}:`, error instanceof Error ? error.message : error);
       return null;
     });
     const venueName = reunion.hippodrome?.libelleLong ?? reunion.hippodrome?.libelleCourt;
     let weather: { coordinates: VenueCoordinates; value: RaceWeather } | null = null;
-    if (venueName && course.heureDepart) {
+    const hasStoredWeather = refreshOnly && Boolean(database.prepare("SELECT 1 FROM race_weather WHERE race_id = ?").get(id));
+    if (venueName && course.heureDepart && !hasStoredWeather) {
       const cached = database.prepare("SELECT resolved_name AS resolvedName, latitude, longitude, timezone, country FROM venues WHERE name = ?").get(venueName) as VenueCoordinates | undefined;
       const coordinates = cached ?? await geocodeVenue(venueName).catch(() => null);
       if (coordinates) {

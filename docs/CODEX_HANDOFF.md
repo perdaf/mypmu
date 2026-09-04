@@ -1,6 +1,6 @@
 # Passation Codex — MyPMU
 
-Dernière mise à jour : 1er septembre 2026.
+Dernière mise à jour : 3 septembre 2026.
 
 ## Objectif du produit
 
@@ -9,12 +9,14 @@ MyPMU est une aide expérimentale à la décision pour les courses hippiques, pr
 ## État opérationnel
 
 - L'application Next.js affiche les programmes, les partants, les analyses et un constructeur de tickets modifiable.
+- La liste des courses affiche sur le support Quinté+ le temps restant estimé avant la fermeture des paris et l'heure de départ en Martinique (`America/Martinique`). L'API ne donnant pas d'heure limite distincte, le départ sert de borne maximale et l'état `enVente` signale la fermeture réelle.
 - Les formules, les Flexi 25/50/100 et leurs coûts sont recalculés dynamiquement.
 - Les courses et paris fermés sont clairement signalés.
 - SQLite est volontairement versionnée dans `data/mypmu.sqlite` pour partager l'historique entre les postes.
 - Les chevaux, engagements et performances sont dédupliqués. Un cheval déjà connu enrichit sa fiche existante.
 - Le collecteur récupère programme, partants, cotes, arrivées, rapports, jusqu'à dix performances antérieures et la météo disponible.
 - `npm run dev:all` démarre l'application et la surveillance Quinté+ ensemble.
+- La surveillance Quinté+ effectue une collecte complète au démarrage et au changement de journée, puis un suivi léger toutes les 15 minutes, accéléré à 5 minutes pendant les 30 dernières minutes et jusqu'aux résultats. Les performances et la météo déjà stockées ne sont pas retéléchargées à chaque passage.
 - L'interface affiche l'état de la collecte, les dernières tentatives/réussites, les volumes, les erreurs et un conseil de vérification du VPN en cas d'indisponibilité PMU.
 
 ## Modèle probabiliste actuel
@@ -71,9 +73,9 @@ Le résultat attendu est `ok`. Suivre ensuite les règles détaillées de `AGENT
 
 ## Dernière validation connue
 
-- 22 tests réussis ;
+- 31 tests réussis ;
 - lint réussi ;
 - vérification TypeScript réussie ;
 - build Next.js réussi ;
 - intégrité SQLite : `ok` ;
-- branche : `main` synchronisée avec `origin/main` au commit fonctionnel `40f3096` avant l'ajout de cette passation.
+- branche : `main` validée avant le push de la collecte adaptative et du compte à rebours Quinté+.
