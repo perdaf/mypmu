@@ -1,6 +1,6 @@
 # Passation Codex — MyPMU
 
-Dernière mise à jour : 3 septembre 2026.
+Dernière mise à jour : 4 septembre 2026.
 
 ## Objectif du produit
 
@@ -78,4 +78,5 @@ Le résultat attendu est `ok`. Suivre ensuite les règles détaillées de `AGENT
 - vérification TypeScript réussie ;
 - build Next.js réussi ;
 - intégrité SQLite : `ok` ;
-- branche : `main` validée avant le push de la collecte adaptative et du compte à rebours Quinté+.
+- la base issue des collectes concurrentes des deux postes a été fusionnée sans perte : 77 courses, 1 562 relevés de cotes, 520 exécutions et 30 prédictions ;
+- branche : `main`, incluant la collecte adaptative et le compte à rebours Quinté+.
