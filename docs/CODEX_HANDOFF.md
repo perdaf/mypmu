@@ -18,6 +18,7 @@ MyPMU est une aide expérimentale à la décision pour les courses hippiques, pr
 - `npm run dev:all` démarre l'application et la surveillance Quinté+ ensemble.
 - La surveillance Quinté+ effectue une collecte complète au démarrage et au changement de journée, puis un suivi léger toutes les 15 minutes, accéléré à 5 minutes pendant les 30 dernières minutes et jusqu'aux résultats. Après les résultats, le watcher attend la prochaine journée sans créer de collectes vides. Les performances et la météo déjà stockées ne sont pas retéléchargées à chaque passage. Les exécutions interrompues depuis plus de 30 minutes sont automatiquement clôturées en échec au passage suivant.
 - L'interface affiche l'état de la collecte, les dernières tentatives/réussites, les volumes, les erreurs et un conseil de vérification du VPN en cas d'indisponibilité PMU.
+- L'écran « Historique & IA » distingue explicitement l'état du modèle probabiliste du seuil de 100 courses exploitables requis pour le premier backtest financier indicatif.
 
 ## Modèle probabiliste actuel
 

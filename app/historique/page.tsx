@@ -44,11 +44,19 @@ export default function HistoryPage() {
       </section>
 
       <section className="dataNotice">
-        <strong>{ready ? "Le seuil minimal est atteint." : "Le modèle n’est pas encore entraîné."}</strong>
+        <strong>
+          {ready
+            ? "Le seuil minimal du backtest est atteint."
+            : history.model.activeVersion
+              ? "Le modèle est entraîné et actif."
+              : "La collecte nécessaire à l’entraînement est en cours."}
+        </strong>
         <p>
           {ready
             ? "Un backtest chronologique peut maintenant comparer les stratégies sans utiliser les résultats futurs."
-            : `Il manque ${Math.max(0, MINIMUM_BACKTEST_RACES - history.usableForBacktest)} courses complètes avant un premier backtest indicatif. Les conseils actuels restent une analyse explicable, pas un modèle statistiquement validé.`}
+            : history.model.activeVersion
+              ? `Les prédictions utilisent déjà le modèle probabiliste actif. Il manque ${Math.max(0, MINIMUM_BACKTEST_RACES - history.usableForBacktest)} courses exploitables pour atteindre le seuil de ${MINIMUM_BACKTEST_RACES} nécessaire au premier backtest financier indicatif.`
+              : `Il manque ${Math.max(0, MINIMUM_BACKTEST_RACES - history.usableForBacktest)} courses exploitables avant le seuil du premier backtest indicatif. Les conseils reposent pour l’instant sur l’analyse explicable.`}
         </p>
       </section>
 
