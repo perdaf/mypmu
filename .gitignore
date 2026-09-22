@@ -10,6 +10,7 @@
 *.tsbuildinfo
 /data/*.sqlite-shm
 /data/*.sqlite-wal
+/data/backups/
 
 # next.js
 /.next/

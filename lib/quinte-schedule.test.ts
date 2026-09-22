@@ -3,6 +3,7 @@ import {
   nextQuinteDelay,
   QUINTE_FAR_INTERVAL_MS,
   QUINTE_NEAR_INTERVAL_MS,
+  shouldRefreshQuinte,
 } from "./quinte-schedule";
 
 describe("nextQuinteDelay", () => {
@@ -33,5 +34,16 @@ describe("nextQuinteDelay", () => {
   it("revient à quinze minutes après obtention des résultats", () => {
     expect(nextQuinteDelay(now, { scheduledAt: now - 20 * 60_000, resultsAvailable: true }))
       .toBe(QUINTE_FAR_INTERVAL_MS);
+  });
+});
+
+describe("shouldRefreshQuinte", () => {
+  it("arrête les collectes après obtention des résultats", () => {
+    expect(shouldRefreshQuinte({ scheduledAt: Date.now(), resultsAvailable: true })).toBe(false);
+  });
+
+  it("continue avant les résultats ou si la course n'est pas encore connue", () => {
+    expect(shouldRefreshQuinte({ scheduledAt: Date.now(), resultsAvailable: false })).toBe(true);
+    expect(shouldRefreshQuinte()).toBe(true);
   });
 });

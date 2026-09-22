@@ -1,7 +1,7 @@
 import { currentPmuDate, runCollector } from "./collector-runner";
 import { classifyCollectorError, updateCollectorStatus } from "../lib/collector-status";
 import { initializeDatabase } from "../lib/db";
-import { nextQuinteDelay, type QuinteScheduleState } from "../lib/quinte-schedule";
+import { nextQuinteDelay, shouldRefreshQuinte, type QuinteScheduleState } from "../lib/quinte-schedule";
 
 let stopped = false;
 const wait = (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));
@@ -60,8 +60,15 @@ async function main() {
     if (newDay) {
       console.log(`Nouvelle journée PMU ${currentDate} : collecte complète.`);
       collectedDate = currentDate;
+      await collect(false);
+      continue;
     }
-    await collect(!newDay);
+    const currentRace = readQuinteSchedule(currentDate);
+    if (shouldRefreshQuinte(currentRace)) {
+      await collect(true);
+    } else {
+      console.log("Résultats Quinté+ acquis : aucune collecte avant la prochaine journée PMU.");
+    }
   }
 }
 

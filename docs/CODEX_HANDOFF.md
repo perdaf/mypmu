@@ -1,6 +1,6 @@
 # Passation Codex — MyPMU
 
-Dernière mise à jour : 3 septembre 2026.
+Dernière mise à jour : 22 septembre 2026.
 
 ## Objectif du produit
 
@@ -16,17 +16,17 @@ MyPMU est une aide expérimentale à la décision pour les courses hippiques, pr
 - Les chevaux, engagements et performances sont dédupliqués. Un cheval déjà connu enrichit sa fiche existante.
 - Le collecteur récupère programme, partants, cotes, arrivées, rapports, jusqu'à dix performances antérieures et la météo disponible.
 - `npm run dev:all` démarre l'application et la surveillance Quinté+ ensemble.
-- La surveillance Quinté+ effectue une collecte complète au démarrage et au changement de journée, puis un suivi léger toutes les 15 minutes, accéléré à 5 minutes pendant les 30 dernières minutes et jusqu'aux résultats. Les performances et la météo déjà stockées ne sont pas retéléchargées à chaque passage.
+- La surveillance Quinté+ effectue une collecte complète au démarrage et au changement de journée, puis un suivi léger toutes les 15 minutes, accéléré à 5 minutes pendant les 30 dernières minutes et jusqu'aux résultats. Après les résultats, le watcher attend la prochaine journée sans créer de collectes vides. Les performances et la météo déjà stockées ne sont pas retéléchargées à chaque passage. Les exécutions interrompues depuis plus de 30 minutes sont automatiquement clôturées en échec au passage suivant.
 - L'interface affiche l'état de la collecte, les dernières tentatives/réussites, les volumes, les erreurs et un conseil de vérification du VPN en cas d'indisponibilité PMU.
 
 ## Modèle probabiliste actuel
 
-Le premier modèle versionné est actif :
+Le modèle versionné actif est :
 
-- version : `logistic-v1-20260901172627915` ;
-- 56 courses d'apprentissage ;
-- 15 courses de validation chronologiquement postérieures ;
-- erreur de Brier moyenne de référence : `0,163` ;
+- version : `logistic-v1-20260922122905063` ;
+- 72 courses d'apprentissage ;
+- 19 courses de validation chronologiquement postérieures ;
+- erreur de Brier moyenne de référence : `0,139`, contre `0,163` pour le modèle précédent ;
 - probabilités estimées séparément : victoire, Top 3, Top 4 et Top 5 ;
 - 16 variables portant sur le marché, la carrière, la forme, la régularité, la discipline, la distance, l'hippodrome, la récupération et la qualité des données.
 
@@ -73,9 +73,10 @@ Le résultat attendu est `ok`. Suivre ensuite les règles détaillées de `AGENT
 
 ## Dernière validation connue
 
-- 31 tests réussis ;
+- 33 tests réussis ;
 - lint réussi ;
 - vérification TypeScript réussie ;
 - build Next.js réussi ;
 - intégrité SQLite : `ok` ;
-- branche : `main` validée avant le push de la collecte adaptative et du compte à rebours Quinté+.
+- base fusionnée sans perte avec `origin/main` : 97 courses, 5 389 relevés de cotes, 1 263 exécutions et 339 prédictions ;
+- branche : `main`, avec arrêt des collectes vides après résultats et récupération automatique des exécutions interrompues.

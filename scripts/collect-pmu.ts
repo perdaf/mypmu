@@ -204,6 +204,13 @@ async function main() {
 let runId: number | bigint | undefined;
 try {
   const startedAt = now();
+  const staleRunCutoff = new Date(Date.now() - 30 * 60 * 1_000).toISOString();
+  database.prepare(`
+    UPDATE ingestion_runs
+    SET finished_at = ?, status = 'failed',
+      error_message = COALESCE(error_message, 'Collecte interrompue avant sa finalisation.')
+    WHERE status = 'running' AND started_at < ?
+  `).run(startedAt, staleRunCutoff);
   if (quinteOnly) updateCollectorStatus({ status: "collecting", lastAttemptAt: startedAt, errorKind: null, errorMessage: null, processId: process.pid });
   runId = database.prepare("INSERT INTO ingestion_runs (programme_date, started_at, status) VALUES (?, ?, 'running')").run(programmeDate, startedAt).lastInsertRowid;
   const programme = await pmuProvider.getProgramme(programmeDate);

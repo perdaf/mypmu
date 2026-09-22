@@ -9,6 +9,10 @@ export type QuinteScheduleState = {
   resultsAvailable: boolean;
 };
 
+export function shouldRefreshQuinte(race?: QuinteScheduleState): boolean {
+  return !race?.resultsAvailable;
+}
+
 export function nextQuinteDelay(now: number, race?: QuinteScheduleState): number {
   if (!race || race.resultsAvailable) return QUINTE_FAR_INTERVAL_MS;
 
