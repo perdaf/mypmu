@@ -18,7 +18,8 @@ export function loadActivePredictions(raceId: string) {
         p.top4_probability AS top4Probability, p.top5_probability AS top5Probability,
         p.confidence
       FROM model_predictions p
-      JOIN model_versions version ON version.version = p.model_version AND version.status = 'active'
+      JOIN model_versions version ON version.version = p.model_version
+        AND version.status = 'active' AND version.temporal_validated = 1
       WHERE p.race_id = ?
     `).all(raceId) as Array<HorsePrediction & { pmuNumber: number }>;
     return new Map(rows.map(({ pmuNumber, ...prediction }) => [pmuNumber, prediction]));

@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:init": "tsx scripts/init-db.ts",
+    "db:repair-arrivals": "tsx scripts/repair-arrival-order.ts",
     "collect": "tsx scripts/collect-pmu.ts",
     "collect:today": "tsx scripts/collect-today.ts",
     "collect:watch": "tsx scripts/watch-collector.ts",

@@ -70,6 +70,9 @@ export default function HistoryPage() {
           <span><small>Version</small><strong>{history.model.activeVersion ?? "—"}</strong></span>
           <span><small>Apprentissage / validation</small><strong>{history.model.trainingRaces} / {history.model.validationRaces} courses</strong></span>
           <span><small>Erreur de Brier moyenne</small><strong>{history.model.aggregateBrier?.toFixed(3) ?? "—"}</strong></span>
+          <span><small>Gagnant classé premier</small><strong>{history.model.winnerHitRate === null ? "—" : `${Math.round(history.model.winnerHitRate * 100)} %`}</strong></span>
+          <span><small>Ordre des paires</small><strong>{history.model.pairwiseOrderAccuracy === null ? "—" : `${Math.round(history.model.pairwiseOrderAccuracy * 100)} %`}</strong></span>
+          <span><small>Qualité ordre Top 5</small><strong>{history.model.ndcgAt5?.toFixed(3) ?? "—"}</strong></span>
           <span><small>Nouvelles courses</small><strong>{history.model.newCompletedRaces} / 20</strong></span>
         </div>
         <div className={history.model.retrainingRecommended ? "modelRetrain due" : "modelRetrain"}>

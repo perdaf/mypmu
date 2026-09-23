@@ -6,6 +6,7 @@ import { pmuProvider } from "../lib/providers";
 import { geocodeVenue, getRaceWeather, type RaceWeather, type VenueCoordinates } from "../lib/weather";
 import { classifyCollectorError, updateCollectorStatus } from "../lib/collector-status";
 import { trainAndPromoteModel } from "../lib/model-training";
+import { expandArrivalOrder } from "../lib/race-results";
 
 const cliArguments = process.argv.slice(2);
 const activeOnly = cliArguments.includes("--active");
@@ -94,12 +95,23 @@ function persistRace(
     ON CONFLICT(race_id, pmu_number) DO UPDATE SET horse_id=excluded.horse_id, status=excluded.status, music=excluded.music, trainer=excluded.trainer, jockey_driver=excluded.jockey_driver, trainer_opinion=excluded.trainer_opinion, career_races=excluded.career_races, career_wins=excluded.career_wins, career_places=excluded.career_places, career_earnings_cents=excluded.career_earnings_cents, starting_gate=excluded.starting_gate, handicap_weight=excluded.handicap_weight, handicap_distance=excluded.handicap_distance, data_completeness=excluded.data_completeness, missing_fields=excluded.missing_fields, raw_json=excluded.raw_json, collected_at=excluded.collected_at
   `);
   const insertOdds = database.prepare("INSERT OR IGNORE INTO odds_snapshots (race_id, pmu_number, odds, source, observed_at) VALUES (?, ?, ?, ?, ?)");
+  const insertEntrySnapshot = database.prepare(`
+    INSERT OR IGNORE INTO race_entry_snapshots (
+      race_id, pmu_number, observed_at, horse_id, status, career_races, career_wins,
+      career_places, career_earnings_cents, starting_gate, handicap_weight,
+      handicap_distance, data_completeness, missing_fields, raw_json
+    ) VALUES (
+      @raceId, @number, @collectedAt, @horseId, @status, @careerRaces, @careerWins,
+      @careerPlaces, @earnings, @startingGate, @weight, @handicapDistance,
+      @completeness, @missingFields, @rawJson
+    )
+  `);
 
   for (const participant of participants) {
     const idHorse = horseId(participant);
     const quality = completeness(participant);
     upsertHorse.run({ id: idHorse, name: participant.nom, sex: participant.sexe ?? null, age: participant.age ?? null, breed: participant.race ?? null, sire: participant.nomPere ?? null, dam: participant.nomMere ?? null, collectedAt });
-    upsertEntry.run({
+    const entryValues = {
       raceId: id, horseId: idHorse, number: participant.numPmu, status: participant.statut ?? null,
       music: participant.musique ?? null, trainer: participant.entraineur ?? null,
       jockeyDriver: participant.jockey ?? participant.driver ?? null, trainerOpinion: participant.avisEntraineur ?? null,
@@ -108,7 +120,9 @@ function persistRace(
       startingGate: participant.placeCorde ?? null, weight: participant.handicapPoids ?? null,
       handicapDistance: participant.handicapDistance ?? null, completeness: quality.ratio,
       missingFields: JSON.stringify(quality.missing), rawJson: JSON.stringify(participant), collectedAt,
-    });
+    };
+    upsertEntry.run(entryValues);
+    insertEntrySnapshot.run(entryValues);
     if (participant.dernierRapportDirect?.rapport) insertOdds.run(id, participant.numPmu, participant.dernierRapportDirect.rapport, "DIRECT", collectedAt);
   }
 
@@ -180,7 +194,9 @@ function persistRace(
 
   database.prepare("DELETE FROM race_results WHERE race_id = ?").run(id);
   const insertResult = database.prepare("INSERT INTO race_results (race_id, finishing_position, pmu_number, dead_heat_group, collected_at) VALUES (?, ?, ?, ?, ?)");
-  course.ordreArrivee?.forEach((group, index) => group.forEach((number) => insertResult.run(id, index + 1, number, group.length > 1 ? index + 1 : 0, collectedAt)));
+  for (const result of expandArrivalOrder(course.ordreArrivee ?? [])) {
+    insertResult.run(id, result.finishingPosition, result.pmuNumber, result.deadHeatGroup, collectedAt);
+  }
 
   if (finalReports.length > 0) {
     database.prepare("DELETE FROM bet_reports WHERE race_id = ?").run(id);

@@ -110,6 +110,28 @@ CREATE TABLE IF NOT EXISTS odds_snapshots (
   UNIQUE (race_id, pmu_number, source, observed_at)
 );
 
+-- Instantané immuable des informations d'un partant à un moment donné. Le
+-- modèle n'utilise que le dernier instantané strictement antérieur au départ.
+CREATE TABLE IF NOT EXISTS race_entry_snapshots (
+  race_id TEXT NOT NULL,
+  pmu_number INTEGER NOT NULL,
+  observed_at TEXT NOT NULL,
+  horse_id TEXT NOT NULL,
+  status TEXT,
+  career_races INTEGER,
+  career_wins INTEGER,
+  career_places INTEGER,
+  career_earnings_cents INTEGER,
+  starting_gate INTEGER,
+  handicap_weight INTEGER,
+  handicap_distance INTEGER,
+  data_completeness REAL NOT NULL,
+  missing_fields TEXT NOT NULL,
+  raw_json TEXT NOT NULL,
+  PRIMARY KEY (race_id, pmu_number, observed_at),
+  FOREIGN KEY (race_id, pmu_number) REFERENCES race_entries(race_id, pmu_number) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS race_bets (
   race_id TEXT NOT NULL REFERENCES races(id) ON DELETE CASCADE,
   bet_code TEXT NOT NULL,
@@ -176,7 +198,8 @@ CREATE TABLE IF NOT EXISTS model_versions (
   normalization_json TEXT NOT NULL,
   coefficients_json TEXT NOT NULL,
   metrics_json TEXT NOT NULL,
-  notes TEXT
+  notes TEXT,
+  temporal_validated INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS model_training_state (
@@ -265,6 +288,7 @@ CREATE TABLE IF NOT EXISTS race_weather (
 CREATE INDEX IF NOT EXISTS idx_races_date ON races(programme_date);
 CREATE INDEX IF NOT EXISTS idx_entries_horse ON race_entries(horse_id);
 CREATE INDEX IF NOT EXISTS idx_odds_race_time ON odds_snapshots(race_id, observed_at);
+CREATE INDEX IF NOT EXISTS idx_entry_snapshots_race_time ON race_entry_snapshots(race_id, observed_at);
 CREATE INDEX IF NOT EXISTS idx_results_race ON race_results(race_id);
 CREATE INDEX IF NOT EXISTS idx_performances_horse_date ON horse_performances(horse_id, raced_at DESC);
 CREATE INDEX IF NOT EXISTS idx_performance_snapshots_target ON race_entry_performance_snapshots(target_race_id, pmu_number, recency_rank);

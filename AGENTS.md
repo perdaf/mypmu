@@ -67,3 +67,8 @@ Le pilotage et le suivi du collecteur Quinté+ sont intégrés à l'application 
 - La collecte Quinté+ rafraîchit les prédictions après chaque passage et déclenche ce contrôle automatiquement.
 - Ne promouvoir un candidat que s’il améliore le modèle actif sur le même jeu de validation ; conserver les versions rejetées pour audit.
 - Toute nouvelle variable doit être disponible avant le départ de la course cible afin d’éviter une fuite de résultats futurs.
+- L'entraînement v2 ne doit utiliser que les lignes `race_entry_snapshots` et `odds_snapshots` dont l'horodatage est strictement antérieur à `races.scheduled_at`.
+- Une promotion doit battre le marché sur la même validation chronologique et ne pas dégrader l'ordre d'arrivée mesuré par NDCG@5 et exactitude des paires.
+- Une promotion exige au moins 15 courses dans l'échantillon de validation chronologique ; un candidat entraîné plus tôt reste uniquement disponible pour audit.
+- Conserver les rangs PMU en classement de compétition : après deux premiers ex æquo, le cheval suivant est troisième. Les métriques d'ordre ne doivent pas départager arbitrairement des ex æquo.
+- Ne jamais réactiver un modèle dont `temporal_validated=0` : il est conservé uniquement pour audit.

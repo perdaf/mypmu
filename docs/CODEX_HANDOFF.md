@@ -22,18 +22,20 @@ MyPMU est une aide expérimentale à la décision pour les courses hippiques, pr
 
 ## Modèle probabiliste actuel
 
-Le modèle versionné actif est :
+Le modèle historique suivant est conservé pour audit mais retiré de la production, car ses cotes et statistiques n'étaient pas toutes figées avant le départ :
 
 - version : `logistic-v1-20260922122905063` ;
 - 72 courses d'apprentissage ;
 - 19 courses de validation chronologiquement postérieures ;
-- erreur de Brier moyenne de référence : `0,139`, contre `0,163` pour le modèle précédent ;
+- erreur de Brier historique : `0,139`, contre `0,163` pour le modèle précédent ; cette mesure ne doit plus être présentée comme une validation temporelle fiable ;
 - probabilités estimées séparément : victoire, Top 3, Top 4 et Top 5 ;
 - 16 variables portant sur le marché, la carrière, la forme, la régularité, la discipline, la distance, l'hippodrome, la récupération et la qualité des données.
 
-Le modèle intervient au maximum à 35 % dans le score de recommandation et son poids diminue lorsque les données du cheval sont incomplètes. La partie heuristique explicable reste utilisée en complément.
+Le pipeline `logistic-v2` collecte désormais un instantané immuable de chaque partant et utilise uniquement les statistiques et cotes strictement antérieures au départ. Il ajoute le mouvement et la volatilité des cotes, le volume de relevés, la taille du peloton et la famille de discipline. Tant que 40 courses temporellement fiables ne sont pas disponibles et qu'un candidat ne bat pas le marché, les tickets reposent sur l'heuristique explicable sans influence du modèle historique.
 
-Après chaque collecte Quinté+, les prédictions des courses encore à venir sont rafraîchies. Après 20 nouvelles courses terminées, un candidat est réentraîné. Il remplace le modèle actif uniquement s'il améliore d'au moins 0,5 % son erreur de Brier sur la même validation. Les prédictions rétroactives sont interdites.
+La validation v2 mesure le Brier et la log-loss après la même normalisation que celle utilisée en production. Elle mesure aussi l'ordre d'arrivée : gagnant classé premier, rappel du Top 5, ordre exact du Top 5, exactitude des paires et NDCG@5. Les ex æquo utilisent les rangs PMU réels et leur ordre interne n'est pas arbitrairement pénalisé. Un candidat doit disposer d'au moins 15 courses de validation, battre le marché et ne pas dégrader ces métriques d'ordre pour être promu.
+
+Après chaque collecte Quinté+, les exemples des courses encore à venir sont rafraîchis. Après 20 nouvelles courses v2 terminées, le besoin de réentraînement est contrôlé ; un minimum de 40 courses reste requis. Les prédictions rétroactives sont interdites.
 
 Commandes utiles :
 
@@ -74,7 +76,7 @@ Le résultat attendu est `ok`. Suivre ensuite les règles détaillées de `AGENT
 
 ## Dernière validation connue
 
-- 33 tests réussis ;
+- 38 tests réussis ;
 - lint réussi ;
 - vérification TypeScript réussie ;
 - build Next.js réussi ;

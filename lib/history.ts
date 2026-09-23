@@ -42,6 +42,9 @@ export type HistoryOverview = {
     trainingRaces: number;
     validationRaces: number;
     aggregateBrier: number | null;
+    winnerHitRate: number | null;
+    pairwiseOrderAccuracy: number | null;
+    ndcgAt5: number | null;
     completedRacesAtTraining: number;
     newCompletedRaces: number;
     retrainingRecommended: boolean;
@@ -107,7 +110,11 @@ export function getHistoryOverview(): HistoryOverview {
           SELECT COUNT(*) FROM races r
           WHERE (SELECT COUNT(*) FROM race_entries e WHERE e.race_id = r.id AND COALESCE(e.status, '') != 'NON_PARTANT') >= 5
             AND (SELECT COUNT(*) FROM race_results rr WHERE rr.race_id = r.id) >= 5
-            AND (SELECT COUNT(*) FROM odds_snapshots os WHERE os.race_id = r.id) >= 5
+            AND (SELECT COUNT(*) FROM odds_snapshots os WHERE os.race_id = r.id
+              AND CAST(strftime('%s', os.observed_at) AS INTEGER) * 1000 < r.scheduled_at) >= 5
+            AND (SELECT COUNT(DISTINCT snapshots.pmu_number) FROM race_entry_snapshots snapshots
+              WHERE snapshots.race_id = r.id
+                AND CAST(strftime('%s', snapshots.observed_at) AS INTEGER) * 1000 < r.scheduled_at) >= 5
         ) AS usableForBacktest,
         (SELECT COUNT(DISTINCT programme_date) FROM races) AS programmeDates,
         (SELECT MIN(programme_date) FROM races) AS firstDate,
@@ -124,7 +131,7 @@ export function getHistoryOverview(): HistoryOverview {
         r.hippodrome,
         COUNT(DISTINCT e.pmu_number) AS runners,
         COALESCE(AVG(e.data_completeness), 0) * 100 AS completenessPercent,
-        COUNT(DISTINCT os.id) AS oddsSnapshots,
+        COUNT(DISTINCT CASE WHEN CAST(strftime('%s', os.observed_at) AS INTEGER) * 1000 < r.scheduled_at THEN os.id END) AS oddsSnapshots,
         (
           SELECT GROUP_CONCAT(pmu_number, ' - ')
           FROM (SELECT pmu_number FROM race_results WHERE race_id = r.id ORDER BY finishing_position LIMIT 5)
@@ -156,19 +163,29 @@ export function getHistoryOverview(): HistoryOverview {
     const trainingState = database.prepare(`
       SELECT status, active_version AS activeVersion,
         completed_races_at_last_training AS completedRacesAtTraining,
-        retraining_recommended AS retrainingRecommended
+        retraining_recommended AS retrainingRecommended,
+        error_message AS errorMessage
       FROM model_training_state WHERE id=1
-    `).get() as { status: string; activeVersion: string | null; completedRacesAtTraining: number; retrainingRecommended: number } | undefined;
+    `).get() as { status: string; activeVersion: string | null; completedRacesAtTraining: number; retrainingRecommended: number; errorMessage: string | null } | undefined;
     const activeModel = database.prepare(`
       SELECT version, trained_at AS trainedAt, training_races AS trainingRaces,
         validation_races AS validationRaces, metrics_json AS metricsJson, notes
-      FROM model_versions WHERE status='active' ORDER BY promoted_at DESC LIMIT 1
+      FROM model_versions WHERE status='active' AND temporal_validated=1 ORDER BY promoted_at DESC LIMIT 1
     `).get() as { version: string; trainedAt: string; trainingRaces: number; validationRaces: number; metricsJson: string; notes: string | null } | undefined;
     let aggregateBrier: number | null = null;
+    let winnerHitRate: number | null = null;
+    let pairwiseOrderAccuracy: number | null = null;
+    let ndcgAt5: number | null = null;
     if (activeModel) {
-      try { aggregateBrier = (JSON.parse(activeModel.metricsJson) as { aggregateBrier?: number }).aggregateBrier ?? null; } catch { aggregateBrier = null; }
+      try {
+        const metrics = JSON.parse(activeModel.metricsJson) as { aggregateBrier?: number; ranking?: { winnerHitRate?: number; pairwiseOrderAccuracy?: number; ndcgAt5?: number } };
+        aggregateBrier = metrics.aggregateBrier ?? null;
+        winnerHitRate = metrics.ranking?.winnerHitRate ?? null;
+        pairwiseOrderAccuracy = metrics.ranking?.pairwiseOrderAccuracy ?? null;
+        ndcgAt5 = metrics.ranking?.ndcgAt5 ?? null;
+      } catch { aggregateBrier = null; }
     }
-    const newCompletedRaces = Math.max(0, totals.completedRaces - (trainingState?.completedRacesAtTraining ?? 0));
+    const newCompletedRaces = Math.max(0, totals.usableForBacktest - (trainingState?.completedRacesAtTraining ?? 0));
     const sources = providerCatalog().map((source) => {
       if (source.id === "PMU" && latestPmuRun?.status === "failed") {
         return { ...source, usable: false, note: `Dernier appel en échec : ${latestPmuRun.errorMessage ?? "cause inconnue"}. Une relance sera tentée.` };
@@ -183,15 +200,18 @@ export function getHistoryOverview(): HistoryOverview {
       recentRaces: recentRaces.map((race) => ({ ...race, completenessPercent: Math.round(race.completenessPercent) })),
       model: {
         status: trainingState?.status ?? "never",
-        activeVersion: activeModel?.version ?? trainingState?.activeVersion ?? null,
+        activeVersion: activeModel?.version ?? null,
         trainedAt: activeModel?.trainedAt ?? null,
         trainingRaces: activeModel?.trainingRaces ?? 0,
         validationRaces: activeModel?.validationRaces ?? 0,
         aggregateBrier,
+        winnerHitRate,
+        pairwiseOrderAccuracy,
+        ndcgAt5,
         completedRacesAtTraining: trainingState?.completedRacesAtTraining ?? 0,
         newCompletedRaces,
         retrainingRecommended: Boolean(trainingState?.retrainingRecommended) || newCompletedRaces >= 20,
-        notes: activeModel?.notes ?? null,
+        notes: activeModel?.notes ?? trainingState?.errorMessage ?? null,
       },
       collection: { days: dayCounts, recentRuns, sources },
     };
